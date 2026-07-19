@@ -5,40 +5,40 @@
 
 export const darkColors = {
   // Backgrounds
-  background: '#09090B', // Pitch dark/OLED style
-  surface: '#121214',
-  card: '#18181B', // Very dark grey, clean
-  cardElevated: '#27272A',
-  modal: '#18181B',
+  background: '#09090B',
+  surface: '#16161A',
+  card: '#16161A',
+  cardElevated: '#1C1C21',
+  modal: '#16161A',
   
-  // Accent (Premium Gold & Minimal White)
-  accent: '#F4D06F', // Luxury gold
-  accentLight: 'rgba(244, 208, 111, 0.05)',
-  accentGlow: 'rgba(244, 208, 111, 0.15)',
-  secondary: '#FFFFFF', // Pure white for high contrast accents
+  // Accent
+  accent: '#E2B973',
+  accentLight: 'rgba(226, 185, 115, 0.12)',
+  accentGlow: 'rgba(226, 185, 115, 0.15)',
+  secondary: '#FFFFFF',
   secondaryLight: 'rgba(255, 255, 255, 0.05)',
   
-  // Semantic (Professional Trading Colors like Binance/TradeLocker)
-  profit: '#2EBD85', // Professional emerald green
-  profitLight: 'rgba(46, 189, 133, 0.08)',
-  loss: '#F6465D', // Professional trading red
-  lossLight: 'rgba(246, 70, 93, 0.08)',
-  warning: '#F5A623',
-  warningLight: 'rgba(245, 166, 35, 0.08)',
-  info: '#3B82F6',
-  infoLight: 'rgba(59, 130, 246, 0.08)',
+  // Semantic (The Black Card — with subtle red for loss)
+  profit: '#FFFFFF',
+  profitLight: 'rgba(255, 255, 255, 0.10)',
+  loss: '#E55A5A', // Soft, muted red (not neon, not dominant)
+  lossLight: 'rgba(229, 90, 90, 0.10)',
+  warning: '#FBBF24',
+  warningLight: 'rgba(251, 191, 36, 0.10)',
+  info: '#60A5FA',
+  infoLight: 'rgba(96, 165, 250, 0.10)',
   
   // Text
-  textPrimary: '#FAFAFA',
-  textSecondary: '#A1A1AA',
-  textTertiary: '#71717A',
-  textInverse: '#09090B',
+  textPrimary: '#F5F5F7',
+  textSecondary: '#8B8D98',
+  textTertiary: '#646675',
+  textInverse: '#0A0B10',
   
   // Borders & Dividers
-  border: 'rgba(255, 255, 255, 0.06)', // Ultra crisp subtle border
-  borderLight: 'rgba(255, 255, 255, 0.03)',
-  borderAccent: 'rgba(244, 208, 111, 0.2)',
-  divider: 'rgba(255, 255, 255, 0.06)',
+  border: 'rgba(255, 255, 255, 0.03)',
+  borderLight: 'rgba(255, 255, 255, 0.02)',
+  borderAccent: 'rgba(226, 185, 115, 0.25)',
+  divider: 'rgba(255, 255, 255, 0.03)',
   
   // Interactive
   ripple: 'rgba(255, 255, 255, 0.05)',
@@ -46,17 +46,17 @@ export const darkColors = {
   hover: 'rgba(255, 255, 255, 0.02)',
   
   // Glassmorphism
-  glass: 'rgba(24, 24, 27, 0.8)',
+  glass: 'rgba(20, 22, 31, 0.85)',
   glassBorder: 'rgba(255, 255, 255, 0.08)',
   
   // Tab Bar
-  tabBar: 'rgba(9, 9, 11, 0.98)',
-  tabActive: '#F4D06F',
-  tabInactive: '#71717A',
+  tabBar: 'rgba(10, 11, 16, 0.98)',
+  tabActive: '#D4AF6A',
+  tabInactive: '#8B8D98',
   
   // Skeleton
-  skeleton: '#27272A',
-  skeletonHighlight: '#3F3F46',
+  skeleton: '#1B1E2B',
+  skeletonHighlight: '#232738',
   
   // Status
   statusBar: 'light',
@@ -81,10 +81,10 @@ export const lightColors = {
   secondaryLight: 'rgba(245, 158, 11, 0.1)',
   
   // Semantic
-  profit: '#16A34A',
-  profitLight: 'rgba(22, 163, 74, 0.08)',
-  loss: '#DC2626',
-  lossLight: 'rgba(220, 38, 38, 0.08)',
+  profit: '#0D9488',
+  profitLight: 'rgba(13, 148, 136, 0.08)',
+  loss: '#E11D48',
+  lossLight: 'rgba(225, 29, 72, 0.08)',
   warning: '#D97706',
   warningLight: 'rgba(217, 119, 6, 0.08)',
   info: '#2563EB',

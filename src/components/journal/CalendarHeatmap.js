@@ -9,17 +9,26 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const CalendarHeatmap = ({ trades, onDayPress }) => {
   const { colors, fontFamily, borderRadius: br } = useTheme();
   
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const today = new Date();
+  const [calMonth, setCalMonth] = useState(today.getMonth());
+  const [calYear, setCalYear] = useState(today.getFullYear());
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
+    if (calMonth === 0) {
+      setCalMonth(11);
+      setCalYear(prev => prev - 1);
+    } else {
+      setCalMonth(prev => prev - 1);
+    }
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
+    if (calMonth === 11) {
+      setCalMonth(0);
+      setCalYear(prev => prev + 1);
+    } else {
+      setCalMonth(prev => prev + 1);
+    }
   };
 
   const { calendarDays, monthStats } = useMemo(() => {
@@ -30,9 +39,15 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
     let lossCount = 0;
 
     trades.forEach(t => {
-      if (!t.date) return;
-      const d = new Date(t.date);
-      if (d.getFullYear() === year && d.getMonth() === month) {
+      if (!t.date || typeof t.date !== 'string') return;
+      
+      // Parse manual to avoid timezone issues (YYYY-MM-DD)
+      const parts = t.date.split('-');
+      if (parts.length < 3) return;
+      const tYear = parseInt(parts[0], 10);
+      const tMonth = parseInt(parts[1], 10) - 1;
+      
+      if (tYear === calYear && tMonth === calMonth) {
         const dateStr = t.date;
         if (!tradesByDate[dateStr]) {
           tradesByDate[dateStr] = { count: 0, pnl: 0, wins: 0, losses: 0, trades: [] };
@@ -56,8 +71,8 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
       }
     });
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
     
     const days = [];
     // Padding for previous month
@@ -67,7 +82,7 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
     
     // Actual days
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayData = tradesByDate[dateStr];
       days.push({
         empty: false,
@@ -84,9 +99,9 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
       calendarDays: days,
       monthStats: { totalPL, winRate, count: winCount + lossCount }
     };
-  }, [trades, year, month]);
+  }, [trades, calYear, calMonth]);
 
-  const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const monthName = new Date(calYear, calMonth, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <View style={styles.container}>
@@ -102,7 +117,7 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
         </Pressable>
       </View>
 
-      <View style={[styles.statsRow, { backgroundColor: colors.card, borderRadius: br.md }]}>
+      <View style={[styles.statsRow, { backgroundColor: colors.glass, borderColor: colors.glassBorder, borderRadius: br.md }]}>
         <View style={styles.statItem}>
           <Text style={[styles.statLabel, { color: colors.textTertiary, fontFamily: fontFamily.medium }]}>Net PnL</Text>
           <Text style={[styles.statValue, { color: monthStats.totalPL >= 0 ? colors.profit : colors.loss, fontFamily: fontFamily.bold }]}>
@@ -139,54 +154,72 @@ const CalendarHeatmap = ({ trades, onDayPress }) => {
         <View style={styles.daysGrid}>
           {calendarDays.map((item, index) => {
             if (item.empty) {
-              return <View key={item.key} style={styles.dayCell} />;
+              return (
+                <View key={item.key} style={styles.dayCellWrapper}>
+                  <View style={styles.emptyDayCell} />
+                </View>
+              );
             }
             
             const hasData = !!item.data;
             const isProfit = hasData && item.data.pnl >= 0;
             const isLoss = hasData && item.data.pnl < 0;
             
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const isToday = item.fullDate === todayStr;
+            
             let bgColor = colors.surface;
-            let borderColor = 'transparent';
+            let borderColor = colors.border;
+            let borderWidth = 1;
             
             if (isProfit) {
               bgColor = colors.profitLight;
               borderColor = colors.profit;
+              borderWidth = 1.5;
             } else if (isLoss) {
               bgColor = colors.lossLight;
               borderColor = colors.loss;
+              borderWidth = 1.5;
             } else if (hasData) {
               // Break even
               bgColor = colors.cardElevated;
               borderColor = colors.textTertiary;
+              borderWidth = 1.5;
+            }
+
+            if (isToday) {
+              borderColor = colors.accent;
+              borderWidth = 1.5;
             }
             
             return (
-              <Pressable
-                key={item.key}
-                onPress={() => hasData && onDayPress && onDayPress(item.fullDate)}
-                style={[
-                  styles.dayCell, 
-                  styles.activeDayCell,
-                  { backgroundColor: bgColor, borderColor, borderRadius: br.sm }
-                ]}
-              >
-                <Text style={[
-                  styles.dateText, 
-                  { 
-                    color: hasData ? colors.textPrimary : colors.textSecondary,
-                    fontFamily: hasData ? fontFamily.bold : fontFamily.regular,
-                  }
-                ]}>
-                  {item.date}
-                </Text>
-                {hasData && (
-                  <View style={[
-                    styles.indicatorDot, 
-                    { backgroundColor: isProfit ? colors.profit : isLoss ? colors.loss : colors.textTertiary }
-                  ]} />
-                )}
-              </Pressable>
+              <View key={item.key} style={styles.dayCellWrapper}>
+                <Pressable
+                  onPress={() => hasData && onDayPress && onDayPress(item.fullDate)}
+                  style={[
+                    styles.activeDayCell,
+                    { backgroundColor: bgColor, borderColor, borderWidth, borderRadius: br.md }
+                  ]}
+                >
+                  <Text style={[
+                    styles.dateText, 
+                    { 
+                      color: colors.textPrimary,
+                      fontFamily: fontFamily.bold,
+                    }
+                  ]}>
+                    {item.date}
+                  </Text>
+                  {hasData && (
+                    <Text style={[
+                      styles.pnlText,
+                      { color: isProfit ? colors.profit : isLoss ? colors.loss : colors.textPrimary, fontFamily: fontFamily.bold }
+                    ]} numberOfLines={1} adjustsFontSizeToFit>
+                      {formatPL(item.data.pnl)}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
             );
           })}
         </View>
@@ -258,25 +291,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  dayCell: {
+  dayCellWrapper: {
     width: '14.28%', // 100/7
     aspectRatio: 1,
     padding: 2,
   },
   activeDayCell: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
+  emptyDayCell: {
+    flex: 1,
+  },
   dateText: {
     fontSize: 14,
   },
-  indicatorDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+  pnlText: {
+    fontSize: 9,
     position: 'absolute',
-    bottom: 6,
+    bottom: 4,
+    paddingHorizontal: 2,
   }
 });
 

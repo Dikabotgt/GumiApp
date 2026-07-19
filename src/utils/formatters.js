@@ -26,8 +26,10 @@ export const formatCurrency = (value, currency = 'USD', decimals = 2) => {
  */
 export const formatPL = (value, decimals = 2) => {
   if (value === null || value === undefined || isNaN(value)) return '$0.00';
-  const sign = value >= 0 ? '+' : '';
-  return `${sign}$${value.toFixed(decimals)}`;
+  const isNegative = value < 0;
+  const absValue = Math.abs(value);
+  const sign = isNegative ? '-' : '+';
+  return `${sign}$${absValue.toFixed(decimals)}`;
 };
 
 /**

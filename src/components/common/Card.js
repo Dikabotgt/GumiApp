@@ -76,7 +76,7 @@ const Card = ({
 
   const cardStyles = [
     styles.card,
-    { borderRadius: br.lg },
+    { borderRadius: br.xl },
     getVariantStyles(),
     style,
   ];
@@ -112,7 +112,7 @@ const Card = ({
 
 const styles = StyleSheet.create({
   card: {
-    padding: 16,
+    padding: 20,
     overflow: 'hidden',
   },
   disabled: {

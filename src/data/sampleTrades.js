@@ -194,7 +194,7 @@ export const sampleTrades = [
     profitLoss: 155.00,
     rrRatio: 2.0,
     strategy: 'Trend Following',
-    session: 'Overlap (London-NY)',
+    session: 'NY Overlap',
     confluence: 'Trendline',
     emotion: 'Confident',
     mistake: 'None',

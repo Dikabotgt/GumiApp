@@ -22,9 +22,9 @@ const Badge = ({
       case 'loss':
         return { bg: colors.lossLight, text: colors.loss };
       case 'buy':
-        return { bg: colors.profitLight, text: colors.profit };
+        return { bg: 'rgba(74, 144, 226, 0.15)', text: '#4A90E2' };
       case 'sell':
-        return { bg: colors.lossLight, text: colors.loss };
+        return { bg: 'rgba(215, 108, 114, 0.15)', text: '#D76C72' };
       case 'accent':
         return { bg: colors.accentLight, text: colors.accent };
       case 'warning':

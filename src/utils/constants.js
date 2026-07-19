@@ -9,11 +9,11 @@ export const APP_TAGLINE = 'Trade Smarter, Journal Better';
 
 // Trading sessions
 export const SESSIONS = [
-  'Asian',
+  'Asia',
   'London', 
   'New York',
+  'NY Overlap',
   'Sydney',
-  'Overlap (London-NY)',
   'Off-Market',
 ];
 

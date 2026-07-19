@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, Pressable, Animated, TextInput, Alert,
+  View, Text, FlatList, StyleSheet, Pressable, Animated, TextInput, Alert, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
@@ -183,27 +183,34 @@ const JournalScreen = ({ navigation }) => {
   const renderTradeCard = useCallback(({ item, index }) => {
     const pl = item.profitLoss || 0;
     const isProfit = pl >= 0;
+    const isBuy = item.direction === 'BUY';
 
     return (
       <AnimatedView animation="fadeSlideUp" delay={index * 50} style={styles.cardWrapper}>
-        <Card
-          variant="default"
+        <Pressable
           onPress={() => navigation.navigate('TradeDetail', { trade: item })}
-          style={styles.tradeCard}
+          style={[styles.transactionCard, { backgroundColor: colors.cardElevated, borderColor: colors.border }]}
         >
-          <View style={styles.tradeHeader}>
-            <View style={styles.tradeHeaderLeft}>
-              <Text style={[styles.tradeInstrument, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
-                {item.instrument || 'Unknown'}
-              </Text>
-              <Badge
-                label={item.direction || 'N/A'}
-                variant={item.direction === 'BUY' ? 'buy' : 'sell'}
-                size="xs"
-              />
+          <View style={styles.txHeaderRow}>
+            <View style={styles.txLeft}>
+              <View style={[styles.txIconBox, { backgroundColor: colors.card }]}>
+                <Text style={[styles.txIconText, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
+                  {item.instrument ? item.instrument.substring(0, 2) : 'UK'}
+                </Text>
+              </View>
+              <View>
+                <Text style={[styles.txInstrument, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
+                  {item.instrument || 'Unknown'}
+                </Text>
+                <View style={[styles.txBadge, { backgroundColor: isBuy ? colors.profitLight : colors.lossLight }]}>
+                  <Text style={[styles.txBadgeText, { color: isBuy ? colors.profit : colors.loss }]}>
+                    {item.direction || 'N/A'}
+                  </Text>
+                </View>
+              </View>
             </View>
             <Text style={[
-              styles.tradePL,
+              styles.txPL,
               { color: isProfit ? colors.profit : colors.loss, fontFamily: fontFamily.bold },
             ]}>
               {formatPL(pl)}
@@ -212,26 +219,26 @@ const JournalScreen = ({ navigation }) => {
 
           <View style={styles.tradeDetails}>
             <View style={styles.tradeDetail}>
-              <Text style={[styles.tradeDetailLabel, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>Date</Text>
-              <Text style={[styles.tradeDetailValue, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>
+              <Text style={[styles.tradeDetailLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>DATE</Text>
+              <Text style={[styles.tradeDetailValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
                 {formatDate(item.date, 'short')}
               </Text>
             </View>
             <View style={styles.tradeDetail}>
-              <Text style={[styles.tradeDetailLabel, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>RR</Text>
-              <Text style={[styles.tradeDetailValue, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>
+              <Text style={[styles.tradeDetailLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>RR</Text>
+              <Text style={[styles.tradeDetailValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
                 {item.rrRatio ? formatRR(item.rrRatio) : '-'}
               </Text>
             </View>
             <View style={styles.tradeDetail}>
-              <Text style={[styles.tradeDetailLabel, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>Lot</Text>
-              <Text style={[styles.tradeDetailValue, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>
+              <Text style={[styles.tradeDetailLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>LOT</Text>
+              <Text style={[styles.tradeDetailValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
                 {item.lot || '-'}
               </Text>
             </View>
             <View style={styles.tradeDetail}>
-              <Text style={[styles.tradeDetailLabel, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>Strategy</Text>
-              <Text style={[styles.tradeDetailValue, { color: colors.textSecondary, fontFamily: fontFamily.medium }]} numberOfLines={1}>
+              <Text style={[styles.tradeDetailLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>STRATEGY</Text>
+              <Text style={[styles.tradeDetailValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]} numberOfLines={1}>
                 {item.strategy || '-'}
               </Text>
             </View>
@@ -240,7 +247,9 @@ const JournalScreen = ({ navigation }) => {
           {item.tags && item.tags.length > 0 && (
             <View style={styles.tagRow}>
               {item.tags.slice(0, 3).map((tag, i) => (
-                <Badge key={i} label={tag} variant="accent" size="xs" style={{ marginRight: 4 }} />
+                <View key={i} style={[styles.miniTag, { backgroundColor: colors.borderLight }]}>
+                  <Text style={[styles.miniTagText, { color: colors.textSecondary }]}>{tag}</Text>
+                </View>
               ))}
               {item.tags.length > 3 && (
                 <Text style={[styles.moreTag, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>
@@ -249,7 +258,7 @@ const JournalScreen = ({ navigation }) => {
               )}
             </View>
           )}
-        </Card>
+        </Pressable>
       </AnimatedView>
     );
   }, [colors, fontFamily, navigation]);
@@ -269,7 +278,7 @@ const JournalScreen = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={[styles.headerDate, { color: colors.textSecondary, fontFamily: fontFamily.bold, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 }]}>
-            JUL 2026
+            {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}
           </Text>
           <Text style={[styles.headerTitle, { color: colors.textPrimary, fontFamily: fontFamily.serif, fontWeight: '700' }]}>
             Journal.
@@ -307,7 +316,7 @@ const JournalScreen = ({ navigation }) => {
 
       {/* Search Bar */}
       <View style={[styles.searchContainer, { marginHorizontal: 16 }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.card, borderRadius: br.md }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.glass, borderColor: colors.glassBorder, borderWidth: 1, borderRadius: br.md }]}>
           <Ionicons name="search" size={18} color={colors.textTertiary} />
           <TextInput
             value={searchQuery}
@@ -565,25 +574,50 @@ const styles = StyleSheet.create({
   cardWrapper: {
     marginBottom: 10,
   },
-  tradeCard: {
-    padding: 14,
+  transactionCard: {
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
   },
-  tradeHeader: {
+  txHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  tradeHeaderLeft: {
+  txLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
-  tradeInstrument: {
-    fontSize: 16,
+  txIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tradePL: {
-    fontSize: 16,
+  txIconText: {
+    fontSize: 14,
+  },
+  txInstrument: {
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  txBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  txBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  txPL: {
+    fontSize: 18,
+    fontVariant: ['tabular-nums'],
   },
   tradeDetails: {
     flexDirection: 'row',
@@ -592,6 +626,8 @@ const styles = StyleSheet.create({
   tradeDetail: {},
   tradeDetailLabel: {
     fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 2,
   },
   tradeDetailValue: {
@@ -600,8 +636,18 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 12,
     flexWrap: 'wrap',
+    gap: 6,
+  },
+  miniTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  miniTagText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   moreTag: {
     fontSize: 11,
@@ -615,11 +661,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
-    shadowColor: '#000',
+    elevation: 12,
+    shadowColor: '#E6C06A',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
   },
 });
 

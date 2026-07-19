@@ -116,9 +116,16 @@ const Button = ({
             borderWidth: variant === 'outline' ? 1.5 : 0,
             paddingVertical: sizeStyle.paddingVertical,
             paddingHorizontal: sizeStyle.paddingHorizontal,
-            borderRadius: br.md,
+            borderRadius: br.full,
             transform: [{ scale: scaleAnim }],
             opacity: disabled ? 0.5 : 1,
+            ...(variant === 'primary' ? {
+                shadowColor: colors.accent,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 8,
+            } : {})
           },
           fullWidth && styles.fullWidth,
           style,

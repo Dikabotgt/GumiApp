@@ -255,6 +255,8 @@ const calculateSessionStats = (trades) => {
     'London': { name: 'London', trades: 0, wins: 0, netPL: 0 },
     'New York': { name: 'New York', trades: 0, wins: 0, netPL: 0 },
     'NY Overlap': { name: 'NY Overlap', trades: 0, wins: 0, netPL: 0 },
+    'Sydney': { name: 'Sydney', trades: 0, wins: 0, netPL: 0 },
+    'Off-Market': { name: 'Off-Market', trades: 0, wins: 0, netPL: 0 },
   };
 
   trades.forEach(trade => {
@@ -300,4 +302,5 @@ const getEmptyStats = () => ({
   monthlyStats: [],
   weeklyStats: [],
   dailyStats: [],
+  sessionStats: [],
 });
