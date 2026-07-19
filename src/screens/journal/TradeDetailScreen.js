@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { useTrades } from '../../context/TradeContext';
@@ -28,6 +28,15 @@ const TradeDetailScreen = ({ navigation, route }) => {
   const isProfit = pl >= 0;
 
   const handleDelete = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Are you sure you want to delete this ${trade.instrument} trade?`);
+      if (confirmed) {
+        deleteTrade(trade.id);
+        navigation.goBack();
+      }
+      return;
+    }
+
     Alert.alert(
       'Delete Trade',
       `Are you sure you want to delete this ${trade.instrument} trade?`,

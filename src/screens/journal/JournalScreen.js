@@ -5,9 +5,11 @@
 
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, Pressable, Animated, TextInput, Alert, ScrollView,
+  View, Text, FlatList, StyleSheet, Pressable, Animated, TextInput, Alert, ScrollView, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Plus } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { useTrades } from '../../context/TradeContext';
 import { formatPL, formatDate, formatRR } from '../../utils/formatters';
@@ -171,6 +173,14 @@ const JournalScreen = ({ navigation }) => {
   }, [trades, searchQuery, sortBy, filterDirection, filterSession]);
 
   const handleDelete = useCallback((id, instrument) => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Are you sure you want to delete ${instrument || 'this trade'}?`);
+      if (confirmed) {
+        deleteTrade(id);
+      }
+      return;
+    }
+
     Alert.alert(
       'Delete Trade',
       `Are you sure you want to delete ${instrument || 'this trade'}?`,
@@ -460,12 +470,24 @@ const JournalScreen = ({ navigation }) => {
           style={[
             styles.fab,
             {
-              backgroundColor: colors.accent,
               transform: [{ scale: fabScale }],
             },
           ]}
         >
-          <Ionicons name="add" size={28} color={colors.textInverse} />
+          <LinearGradient
+            colors={['#F9E493', '#DCA83B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[
+              StyleSheet.absoluteFill, 
+              { 
+                borderRadius: 30,
+                borderWidth: 1,
+                borderColor: '#FFF3B3', // Highlight reflection
+              }
+            ]}
+          />
+          <Plus size={28} color="#2A1B00" strokeWidth={2.5} />
         </Animated.View>
       </Pressable>
     </GradientBackground>
@@ -657,17 +679,34 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 12,
-    shadowColor: '#E6C06A',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#DCA83B',
+    shadowOffset: { width: 0, height: 6 }, 
     shadowOpacity: 0.4,
-    shadowRadius: 16,
+    shadowRadius: 12,
+    elevation: 8,
   },
+  fabGlassOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 16,
+  },
+  premiumFabGlassOverlay: {
+    borderRadius: 16,
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.9)', 
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(0, 0, 0, 0.3)', 
+    borderLeftWidth: 0.5,
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 0.5,
+    borderRightColor: 'rgba(0, 0, 0, 0.2)',
+  }
 });
 
 export default JournalScreen;

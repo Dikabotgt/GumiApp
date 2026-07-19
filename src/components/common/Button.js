@@ -5,9 +5,10 @@
 
 import React, { useRef } from 'react';
 import { 
-  StyleSheet, Animated, Pressable, Text, ActivityIndicator, View 
+  StyleSheet, Animated, Pressable, Text, ActivityIndicator, View, Platform 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 
 const Button = ({
@@ -49,7 +50,7 @@ const Button = ({
     switch (variant) {
       case 'primary':
         return {
-          bg: colors.accent,
+          bg: 'transparent',
           text: colors.textInverse,
           border: 'transparent',
         };
@@ -116,30 +117,45 @@ const Button = ({
             borderWidth: variant === 'outline' ? 1.5 : 0,
             paddingVertical: sizeStyle.paddingVertical,
             paddingHorizontal: sizeStyle.paddingHorizontal,
-            borderRadius: br.full,
+            borderRadius: 9999, // Perfect pill
             transform: [{ scale: scaleAnim }],
             opacity: disabled ? 0.5 : 1,
             ...(variant === 'primary' ? {
-                shadowColor: colors.accent,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-                elevation: 8,
+              shadowColor: colors.accent,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 10,
+              elevation: 4,
             } : {})
           },
           fullWidth && styles.fullWidth,
           style,
         ]}
       >
+        {variant === 'primary' && (
+          <LinearGradient
+            colors={['#F9E493', '#DCA83B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[
+              StyleSheet.absoluteFill, 
+              { 
+                borderRadius: 9999,
+                borderWidth: 1,
+                borderColor: '#FFF3B3',
+              }
+            ]}
+          />
+        )}
         {loading ? (
-          <ActivityIndicator size="small" color={variantStyle.text} />
+          <ActivityIndicator size="small" color={variant === 'primary' ? '#2A1B00' : variantStyle.text} />
         ) : (
           <View style={styles.content}>
             {icon && iconPosition === 'left' && (
               <Ionicons
                 name={icon}
                 size={sizeStyle.fontSize + 4}
-                color={variantStyle.text}
+                color={variant === 'primary' ? '#2A1B00' : variantStyle.text}
                 style={styles.iconLeft}
               />
             )}
@@ -147,9 +163,10 @@ const Button = ({
               style={[
                 styles.text,
                 {
-                  color: variantStyle.text,
+                  color: variant === 'primary' ? '#2A1B00' : variantStyle.text,
                   fontSize: sizeStyle.fontSize,
-                  fontFamily: fontFamily.semiBold,
+                  fontFamily: fontFamily.bold,
+                  letterSpacing: 0.5,
                 },
                 textStyle,
               ]}
@@ -193,6 +210,21 @@ const styles = StyleSheet.create({
   },
   iconRight: {
     marginLeft: 8,
+  },
+  glassOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  premiumGlassOverlay: {
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.9)', // Strong highlight on top edge
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(0, 0, 0, 0.3)', // Deep shadow on bottom edge
+    borderLeftWidth: 0.5,
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 0.5,
+    borderRightColor: 'rgba(0, 0, 0, 0.2)',
   },
 });
 
