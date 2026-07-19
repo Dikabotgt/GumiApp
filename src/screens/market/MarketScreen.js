@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
-import Card from '../../components/common/Card';
+import GradientBackground from '../../components/common/GradientBackground';
+import GlassCard from '../../components/common/GlassCard';
 import AnimatedView from '../../components/common/AnimatedView';
 import Badge from '../../components/common/Badge';
 
@@ -78,7 +79,7 @@ const MarketScreen = ({ navigation }) => {
     const isPositive = item.changePercent >= 0;
     return (
       <AnimatedView animation="fadeSlideUp" delay={index * 50} style={styles.instrumentWrapper}>
-        <Card style={styles.instrumentCard}>
+        <GlassCard style={styles.instrumentCard}>
           <View style={styles.instrumentHeader}>
             <Text style={[styles.instrumentSymbol, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
               {item.symbol}
@@ -94,7 +95,7 @@ const MarketScreen = ({ navigation }) => {
           </Text>
           <Text style={[
             styles.instrumentChange,
-            { color: isPositive ? colors.profit : colors.loss, fontFamily: fontFamily.medium },
+            { color: isPositive ? colors.marketGreen : colors.loss, fontFamily: fontFamily.medium },
           ]}>
             {isPositive ? '+' : ''}{item.change.toFixed(2)}
           </Text>
@@ -108,7 +109,7 @@ const MarketScreen = ({ navigation }) => {
                   style={{
                     width: 3,
                     height: h,
-                    backgroundColor: isPositive ? colors.profit : colors.loss,
+                    backgroundColor: isPositive ? colors.marketGreen : colors.loss,
                     borderRadius: 1.5,
                     opacity: 0.4 + (i / 12) * 0.6,
                   }}
@@ -116,7 +117,7 @@ const MarketScreen = ({ navigation }) => {
               );
             })}
           </View>
-        </Card>
+        </GlassCard>
       </AnimatedView>
     );
   };
@@ -125,8 +126,8 @@ const MarketScreen = ({ navigation }) => {
     if (fearGreedValue <= 25) return colors.loss;
     if (fearGreedValue <= 45) return colors.warning;
     if (fearGreedValue <= 55) return colors.textSecondary;
-    if (fearGreedValue <= 75) return colors.profit;
-    return colors.profit;
+    if (fearGreedValue <= 75) return colors.marketGreen;
+    return colors.marketGreen;
   };
 
   const getFearGreedLabel = () => {
@@ -138,7 +139,7 @@ const MarketScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <GradientBackground style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <AnimatedView animation="fadeSlideUp">
@@ -151,8 +152,8 @@ const MarketScreen = ({ navigation }) => {
                 Live market overview
               </Text>
             </View>
-            <View style={[styles.headerBadge, { backgroundColor: colors.profitLight }]}>
-              <Ionicons name="trending-up" size={20} color={colors.profit} />
+            <View style={[styles.headerBadge, { backgroundColor: colors.marketGreenLight }]}>
+              <Ionicons name="trending-up" size={20} color={colors.marketGreen} />
             </View>
           </View>
         </AnimatedView>
@@ -195,7 +196,7 @@ const MarketScreen = ({ navigation }) => {
 
         {/* Fear & Greed Index */}
         <AnimatedView animation="fadeSlideUp" delay={300}>
-          <Card style={styles.fearGreedCard}>
+          <GlassCard style={styles.fearGreedCard}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
               Fear & Greed Index
             </Text>
@@ -214,16 +215,16 @@ const MarketScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.fearGreedLabels}>
                   <Text style={[styles.fearGreedEndLabel, { color: colors.loss, fontFamily: fontFamily.regular }]}>Fear</Text>
-                  <Text style={[styles.fearGreedEndLabel, { color: colors.profit, fontFamily: fontFamily.regular }]}>Greed</Text>
+                  <Text style={[styles.fearGreedEndLabel, { color: colors.marketGreen, fontFamily: fontFamily.regular }]}>Greed</Text>
                 </View>
               </View>
             </View>
-          </Card>
+          </GlassCard>
         </AnimatedView>
 
         {/* Market Sentiment */}
         <AnimatedView animation="fadeSlideUp" delay={400}>
-          <Card style={styles.sentimentCard}>
+          <GlassCard style={styles.sentimentCard}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
               Market Sentiment
             </Text>
@@ -238,20 +239,20 @@ const MarketScreen = ({ navigation }) => {
                   {item.label}
                 </Text>
                 <View style={styles.sentimentBarContainer}>
-                  <View style={[styles.sentimentBarBull, { flex: item.bullish, backgroundColor: colors.profit }]} />
+                  <View style={[styles.sentimentBarBull, { flex: item.bullish, backgroundColor: colors.marketGreen }]} />
                   <View style={[styles.sentimentBarBear, { flex: 100 - item.bullish, backgroundColor: colors.loss }]} />
                 </View>
-                <Text style={[styles.sentimentPercent, { color: colors.profit, fontFamily: fontFamily.medium }]}>
+                <Text style={[styles.sentimentPercent, { color: colors.marketGreen, fontFamily: fontFamily.medium }]}>
                   {item.bullish}%
                 </Text>
               </View>
             ))}
-          </Card>
+          </GlassCard>
         </AnimatedView>
 
         {/* AI Market Summary */}
         <AnimatedView animation="fadeSlideUp" delay={450}>
-          <Card variant="accent" style={styles.aiCard}>
+          <GlassCard variant="accent" style={styles.aiCard}>
             <View style={styles.aiHeader}>
               <Ionicons name="sparkles" size={20} color={colors.accent} />
               <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
@@ -264,7 +265,7 @@ const MarketScreen = ({ navigation }) => {
               recent selloff with strong ETF inflows supporting price action. Watch for NFP data release which could 
               trigger significant volatility across all major pairs.
             </Text>
-          </Card>
+          </GlassCard>
         </AnimatedView>
 
         {/* News */}
@@ -274,7 +275,7 @@ const MarketScreen = ({ navigation }) => {
           </Text>
           {MOCK_NEWS.map((news, index) => (
             <AnimatedView key={news.id} animation="fadeSlideUp" delay={550 + index * 50}>
-              <Card style={styles.newsCard}>
+              <GlassCard style={styles.newsCard}>
                 <View style={styles.newsHeader}>
                   <Badge
                     label={news.impact}
@@ -291,14 +292,14 @@ const MarketScreen = ({ navigation }) => {
                 <Text style={[styles.newsSource, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>
                   {news.source}
                 </Text>
-              </Card>
+              </GlassCard>
             </AnimatedView>
           ))}
         </AnimatedView>
 
         {/* Economic Calendar */}
         <AnimatedView animation="fadeSlideUp" delay={700}>
-          <Card style={styles.calendarCard}>
+          <GlassCard style={styles.calendarCard}>
             <View style={styles.calendarHeader}>
               <Ionicons name="calendar" size={18} color={colors.accent} />
               <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
@@ -328,7 +329,7 @@ const MarketScreen = ({ navigation }) => {
                       P: {event.previous}
                     </Text>
                     {event.actual !== '-' && (
-                      <Text style={[styles.calendarValue, { color: colors.profit, fontFamily: fontFamily.semiBold }]}>
+                      <Text style={[styles.calendarValue, { color: colors.marketGreen, fontFamily: fontFamily.semiBold }]}>
                         A: {event.actual}
                       </Text>
                     )}
@@ -336,12 +337,12 @@ const MarketScreen = ({ navigation }) => {
                 </View>
               </View>
             ))}
-          </Card>
+          </GlassCard>
         </AnimatedView>
 
         <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 };
 

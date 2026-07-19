@@ -6,7 +6,7 @@
 /**
  * Calculate all dashboard statistics from trades array
  */
-export const calculateStats = (trades) => {
+export const calculateStats = (trades, initialBalance = 0) => {
   if (!trades || trades.length === 0) {
     return getEmptyStats();
   }
@@ -27,28 +27,31 @@ export const calculateStats = (trades) => {
   
   const winRate = (wins.length / completedTrades.length) * 100;
   
-  const avgWin = wins.length > 0 ? totalProfit / wins.length : 0;
-  const avgLoss = losses.length > 0 ? totalLoss / losses.length : 0;
+  const validWins = wins.length > 0 ? wins : [];
+  const validLosses = losses.length > 0 ? losses : [];
+  const avgWin = validWins.length > 0 ? totalProfit / validWins.length : 0;
+  const avgLoss = validLosses.length > 0 ? totalLoss / validLosses.length : 0;
   
-  const avgRR = completedTrades
-    .filter(t => t.rrRatio !== undefined && t.rrRatio !== null)
-    .reduce((sum, t, _, arr) => sum + t.rrRatio / arr.length, 0);
+  const validRrTrades = completedTrades.filter(t => t.rrRatio !== undefined && t.rrRatio !== null && !isNaN(Number(t.rrRatio)));
+  const avgRR = validRrTrades.length > 0
+    ? validRrTrades.reduce((sum, t) => sum + Number(t.rrRatio), 0) / validRrTrades.length
+    : 0;
 
   const bestTrade = Math.max(...completedTrades.map(t => t.profitLoss));
   const worstTrade = Math.min(...completedTrades.map(t => t.profitLoss));
 
   const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : totalProfit > 0 ? Infinity : 0;
   
-  // Expectancy = (Win% × Avg Win) - (Loss% × Avg Loss)
-  const winPercent = wins.length / completedTrades.length;
-  const lossPercent = losses.length / completedTrades.length;
+  // Expectancy = (Win% * Avg Win) - (Loss% * Avg Loss)
+  const winPercent = validWins.length / completedTrades.length;
+  const lossPercent = validLosses.length / completedTrades.length;
   const expectancy = (winPercent * avgWin) - (lossPercent * avgLoss);
 
   // Streaks
   const { currentStreak, maxWinStreak, maxLoseStreak } = calculateStreaks(completedTrades);
 
   // Maximum Drawdown
-  const maxDrawdown = calculateMaxDrawdown(completedTrades);
+  const maxDrawdown = calculateMaxDrawdown(completedTrades, initialBalance);
 
   // Equity Curve
   const equityCurve = calculateEquityCurve(completedTrades);
@@ -138,11 +141,13 @@ const calculateStreaks = (trades) => {
 };
 
 /**
- * Calculate maximum drawdown percentage
+ * Calculate maximum drawdown percentage (peak-to-trough relative to equity)
  */
-const calculateMaxDrawdown = (trades) => {
-  let peak = 0;
-  let cumulative = 0;
+const calculateMaxDrawdown = (trades, initialBalance = 0) => {
+  if (initialBalance === 0) return 0;
+
+  let peak = initialBalance;
+  let cumulative = initialBalance;
   let maxDD = 0;
 
   const sorted = [...trades].sort((a, b) => {
@@ -156,11 +161,11 @@ const calculateMaxDrawdown = (trades) => {
     if (cumulative > peak) {
       peak = cumulative;
     }
-    const drawdown = peak > 0 ? ((peak - cumulative) / peak) * 100 : 0;
-    maxDD = Math.max(maxDD, drawdown);
+    const currentDrawdownPercent = peak > 0 ? ((peak - cumulative) / peak) * 100 : 0;
+    maxDD = Math.max(maxDD, currentDrawdownPercent);
   });
 
-  return maxDD;
+  return Math.min(100, Math.max(0, maxDD));
 };
 
 /**

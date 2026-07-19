@@ -20,6 +20,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import AnimatedView from '../../components/common/AnimatedView';
+import { getDecimalCount, roundTo } from '../../utils/decimalUtils';
 
 const AddTradeScreen = ({ navigation, route }) => {
   const { colors, fontFamily, borderRadius: br } = useTheme();
@@ -85,20 +86,30 @@ const AddTradeScreen = ({ navigation, route }) => {
           else updated.outcome = 'be';
         }
         
-        // Smart RR
+        // Smart RR with Dynamic Precision
         if (!isNaN(entry) && !isNaN(sl)) {
-          const risk = dir === 'BUY' ? Math.abs(entry - sl) : Math.abs(sl - entry);
+          const precision = Math.max(
+            getDecimalCount(updated.entry),
+            getDecimalCount(updated.stopLoss),
+            getDecimalCount(updated.takeProfit),
+            getDecimalCount(updated.exit)
+          );
+
+          const risk = roundTo(Math.abs(entry - sl), precision);
+          
           if (risk > 0) {
             if (!isNaN(tp) && tp !== 0 && isNaN(exit)) {
               // Planned RR
-              const rewardTP = dir === 'BUY' ? Math.abs(tp - entry) : Math.abs(entry - tp);
+              const rewardTP = roundTo(Math.abs(tp - entry), precision);
               updated.rrRatio = (rewardTP / risk).toFixed(2);
             }
             if (!isNaN(exit) && exit !== 0) {
               // Actual RR based on exit
-              const reward = dir === 'BUY' ? (exit - entry) : (entry - exit);
+              const reward = roundTo(Math.abs(exit - entry), precision);
               updated.rrRatio = (reward / risk).toFixed(2);
             }
+          } else {
+            updated.rrRatio = '0.00';
           }
         }
       }
@@ -220,6 +231,44 @@ const AddTradeScreen = ({ navigation, route }) => {
       Alert.alert('Missing Field', 'Please enter an instrument/symbol');
       return;
     }
+
+    const precision = Math.max(
+      getDecimalCount(form.entry),
+      getDecimalCount(form.stopLoss),
+      getDecimalCount(form.takeProfit),
+      getDecimalCount(form.exit)
+    );
+
+    const entryNum = parseFloat(form.entry) || 0;
+    const slNum = parseFloat(form.stopLoss) || 0;
+    const tpNum = parseFloat(form.takeProfit) || 0;
+    
+    // Validation
+    if (entryNum > 0 && slNum > 0) {
+      const risk = roundTo(Math.abs(entryNum - slNum), precision);
+      if (risk === 0) {
+        Alert.alert('Invalid Stop Loss', 'Stop Loss cannot be exactly the same as Entry price.');
+        return;
+      }
+      
+      const rrVal = parseFloat(form.rrRatio) || 0;
+      if (rrVal > 50) {
+        Alert.alert(
+          'Unusual RR Detected', 
+          `Your Risk:Reward is extremely high (${rrVal}R). Please check your Entry and SL inputs for typos.`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Submit Anyway', onPress: () => saveValidatedTrade() }
+          ]
+        );
+        return;
+      }
+    }
+
+    saveValidatedTrade();
+  }, [form, isEditing, editTrade, addTrade, updateTrade, navigation]);
+
+  const saveValidatedTrade = useCallback(() => {
 
     const tradeData = {
       ...form,

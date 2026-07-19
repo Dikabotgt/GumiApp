@@ -12,7 +12,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useTrades } from '../../context/TradeContext';
 import { formatPL, formatDate, formatRR } from '../../utils/formatters';
 import { SORT_OPTIONS, DATE_FILTERS, DIRECTIONS, SESSIONS } from '../../utils/constants';
-import Card from '../../components/common/Card';
+import GradientBackground from '../../components/common/GradientBackground';
+import GlassCard from '../../components/common/GlassCard';
 import Badge from '../../components/common/Badge';
 import AnimatedView from '../../components/common/AnimatedView';
 import EmptyState from '../../components/common/EmptyState';
@@ -187,9 +188,10 @@ const JournalScreen = ({ navigation }) => {
 
     return (
       <AnimatedView animation="fadeSlideUp" delay={index * 50} style={styles.cardWrapper}>
-        <Pressable
+        <GlassCard
+          variant="elevated"
           onPress={() => navigation.navigate('TradeDetail', { trade: item })}
-          style={[styles.transactionCard, { backgroundColor: colors.cardElevated, borderColor: colors.border }]}
+          style={[styles.transactionCard, { padding: 0 }]}
         >
           <View style={styles.txHeaderRow}>
             <View style={styles.txLeft}>
@@ -211,7 +213,7 @@ const JournalScreen = ({ navigation }) => {
             </View>
             <Text style={[
               styles.txPL,
-              { color: isProfit ? colors.profit : colors.loss, fontFamily: fontFamily.bold },
+              { color: isProfit ? colors.profit : colors.loss, fontFamily: fontFamily.serif },
             ]}>
               {formatPL(pl)}
             </Text>
@@ -246,19 +248,14 @@ const JournalScreen = ({ navigation }) => {
 
           {item.tags && item.tags.length > 0 && (
             <View style={styles.tagRow}>
-              {item.tags.slice(0, 3).map((tag, i) => (
+              {item.tags.map((tag, i) => (
                 <View key={i} style={[styles.miniTag, { backgroundColor: colors.borderLight }]}>
                   <Text style={[styles.miniTagText, { color: colors.textSecondary }]}>{tag}</Text>
                 </View>
               ))}
-              {item.tags.length > 3 && (
-                <Text style={[styles.moreTag, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>
-                  +{item.tags.length - 3}
-                </Text>
-              )}
             </View>
           )}
-        </Pressable>
+        </GlassCard>
       </AnimatedView>
     );
   }, [colors, fontFamily, navigation]);
@@ -273,14 +270,14 @@ const JournalScreen = ({ navigation }) => {
   const hasActiveFilters = filterDirection || filterSession || searchQuery;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <GradientBackground style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={[styles.headerDate, { color: colors.textSecondary, fontFamily: fontFamily.bold, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 }]}>
             {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}
           </Text>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary, fontFamily: fontFamily.serif, fontWeight: '700' }]}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary, fontFamily: fontFamily.serif }]}>
             Journal.
           </Text>
         </View>
@@ -471,7 +468,7 @@ const JournalScreen = ({ navigation }) => {
           <Ionicons name="add" size={28} color={colors.textInverse} />
         </Animated.View>
       </Pressable>
-    </View>
+    </GradientBackground>
   );
 };
 
@@ -569,7 +566,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 140,
   },
   cardWrapper: {
     marginBottom: 10,
@@ -622,8 +619,12 @@ const styles = StyleSheet.create({
   tradeDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  tradeDetail: {},
+  tradeDetail: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   tradeDetailLabel: {
     fontSize: 10,
     textTransform: 'uppercase',

@@ -11,13 +11,15 @@ import { useSettings } from '../../context/SettingsContext';
 import { useTrades } from '../../context/TradeContext';
 import { APP_NAME, APP_VERSION } from '../../utils/constants';
 import AnimatedView from '../../components/common/AnimatedView';
+import GradientBackground from '../../components/common/GradientBackground';
+import GlassCard from '../../components/common/GlassCard';
 import { createBackup, restoreBackup, parseCSV } from '../../utils/storage';
 import { exportPDF, exportCSV } from '../../utils/export';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 
 const SettingsScreen = ({ navigation }) => {
-  const { colors, fontFamily, isDark, toggleTheme, borderRadius: br } = useTheme();
+  const { colors, fontFamily, borderRadius: br } = useTheme();
   const { settings, updateSettings } = useSettings();
   const { trades, bulkImport } = useTrades();
 
@@ -219,7 +221,6 @@ const SettingsScreen = ({ navigation }) => {
     {
       title: 'APPEARANCE',
       items: [
-        { icon: isDark ? 'moon' : 'sunny', label: 'Dark Theme', toggleTheme: true },
         { icon: 'language-outline', label: 'Language', value: settings.language === 'en' ? 'English' : 'Bahasa', onPress: handleLanguageSelect, chevron: true },
       ],
     },
@@ -254,7 +255,7 @@ const SettingsScreen = ({ navigation }) => {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <GradientBackground style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <AnimatedView animation="fadeSlideUp">
@@ -267,9 +268,10 @@ const SettingsScreen = ({ navigation }) => {
 
         {/* Profile Card */}
         <AnimatedView animation="fadeSlideUp" delay={50}>
-          <Pressable
+          <GlassCard
+            variant="elevated"
             onPress={() => navigation.navigate('Profile')}
-            style={[styles.profileCard, { backgroundColor: colors.card, borderRadius: br.xl }]}
+            style={[styles.profileCard, { borderRadius: br.xl }]}
           >
             <View style={[styles.avatar, { backgroundColor: colors.accentLight }]}>
               <Ionicons name="person" size={28} color={colors.accent} />
@@ -283,7 +285,7 @@ const SettingsScreen = ({ navigation }) => {
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </Pressable>
+          </GlassCard>
         </AnimatedView>
 
         {/* Settings Sections */}
@@ -294,7 +296,7 @@ const SettingsScreen = ({ navigation }) => {
                 {section.title}
               </Text>
             ) : null}
-            <View style={[styles.sectionCard, { backgroundColor: colors.card, borderRadius: br.lg }]}>
+            <GlassCard style={[styles.sectionCard, { padding: 0, borderRadius: br.lg }]}>
               {section.items.map((item, iIndex) => (
                 <Pressable
                   key={iIndex}
@@ -303,8 +305,6 @@ const SettingsScreen = ({ navigation }) => {
                       item.onPress();
                     } else if (item.screen) {
                       navigation.navigate(item.screen);
-                    } else if (item.toggleTheme) {
-                      toggleTheme();
                     }
                   }}
                   style={[
@@ -353,27 +353,19 @@ const SettingsScreen = ({ navigation }) => {
                         thumbColor={settings[item.toggle] ? colors.accent : colors.textTertiary}
                       />
                     )}
-                    {item.toggleTheme && (
-                      <Switch
-                        value={isDark}
-                        onValueChange={toggleTheme}
-                        trackColor={{ false: colors.border, true: colors.accentLight }}
-                        thumbColor={isDark ? colors.accent : colors.textTertiary}
-                      />
-                    )}
                     {item.chevron && (
                       <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
                     )}
                   </View>
                 </Pressable>
               ))}
-            </View>
+            </GlassCard>
           </AnimatedView>
         ))}
 
         <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 };
 

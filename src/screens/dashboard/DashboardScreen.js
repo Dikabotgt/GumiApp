@@ -3,38 +3,78 @@
  * Premium analytics dashboard with all trading metrics
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, RefreshControl, Dimensions, Pressable, TouchableOpacity
-} from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop, Rect, Circle as SvgCircle } from 'react-native-svg';
-import { Bell, Wallet, ArrowUpCircle, ArrowDownCircle, Trophy, Target, Star, AlertTriangle, TrendingUp, TrendingDown, Activity, BarChart2, Flame, Rocket, CloudLightning, ArrowDownToLine, ChevronRight } from 'lucide-react-native';
-import { useTheme } from '../../context/ThemeContext';
-import { useTrades } from '../../context/TradeContext';
-import { calculateStats } from '../../utils/calculations';
-import { formatCurrency, formatPercent, formatPL, formatNumber } from '../../utils/formatters';
-import Card from '../../components/common/Card';
-import AnimatedView from '../../components/common/AnimatedView';
-import Badge from '../../components/common/Badge';
-import EmptyState from '../../components/common/EmptyState';
-import { SkeletonStat } from '../../components/common/Skeleton';
-import CalendarHeatmap from '../../components/journal/CalendarHeatmap';
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Dimensions,
+  Pressable,
+  TouchableOpacity,
+} from "react-native";
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  Rect,
+  Circle as SvgCircle,
+} from "react-native-svg";
+import {
+  Bell,
+  Wallet,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Trophy,
+  Target,
+  Star,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  BarChart2,
+  Flame,
+  Rocket,
+  CloudLightning,
+  ArrowDownToLine,
+  ChevronRight,
+} from "lucide-react-native";
+import { useTheme } from "../../context/ThemeContext";
+import { useTrades } from "../../context/TradeContext";
+import { useSettings } from "../../context/SettingsContext";
+import { calculateStats } from "../../utils/calculations";
+import {
+  formatCurrency,
+  formatPercent,
+  formatPL,
+  formatNumber,
+} from "../../utils/formatters";
+import GradientBackground from "../../components/common/GradientBackground";
+import GlassCard from "../../components/common/GlassCard";
+import AnimatedView from "../../components/common/AnimatedView";
+import Badge from "../../components/common/Badge";
+import EmptyState from "../../components/common/EmptyState";
+import { SkeletonStat } from "../../components/common/Skeleton";
+import CalendarHeatmap from "../../components/journal/CalendarHeatmap";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const DashboardScreen = ({ navigation }) => {
-  const { colors, fontFamily, isDark } = useTheme();
+  const { colors, fontFamily } = useTheme();
   const { trades, isLoading } = useTrades();
+  const { settings } = useSettings();
   const [refreshing, setRefreshing] = useState(false);
-  const [activeStatPeriod, setActiveStatPeriod] = useState('monthly');
-  const [accountFilter, setAccountFilter] = useState('all');
+  const [activeStatPeriod, setActiveStatPeriod] = useState("monthly");
+  const [accountFilter, setAccountFilter] = useState("all");
 
   const filteredTrades = useMemo(() => {
-    if (accountFilter === 'all') return trades;
-    return trades.filter(t => (t.accountType || 'real') === accountFilter);
+    if (accountFilter === "all") return trades;
+    return trades.filter((t) => (t.accountType || "real") === accountFilter);
   }, [trades, accountFilter]);
 
-  const stats = useMemo(() => calculateStats(filteredTrades), [filteredTrades]);
+  const stats = useMemo(() => calculateStats(filteredTrades, settings?.accountBalance || 0), [filteredTrades, settings?.accountBalance]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -45,12 +85,17 @@ const DashboardScreen = ({ navigation }) => {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.textPrimary, fontFamily: fontFamily.bold },
+            ]}
+          >
             Dashboard
           </Text>
         </View>
         <View style={styles.skeletonGrid}>
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <SkeletonStat key={i} style={styles.skeletonItem} />
           ))}
         </View>
@@ -60,16 +105,23 @@ const DashboardScreen = ({ navigation }) => {
 
   // Stat cards logic has been inline-restructured, keeping stat array logic empty here
 
-  const periodStats = activeStatPeriod === 'monthly' ? stats.monthlyStats
-    : activeStatPeriod === 'weekly' ? stats.weeklyStats
-      : stats.dailyStats;
+  const periodStats =
+    activeStatPeriod === "monthly"
+      ? stats.monthlyStats
+      : activeStatPeriod === "weekly"
+        ? stats.weeklyStats
+        : stats.dailyStats;
 
   return (
-    <View style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <GradientBackground style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
         }
         contentContainerStyle={styles.scrollContent}
       >
@@ -77,25 +129,76 @@ const DashboardScreen = ({ navigation }) => {
         <AnimatedView animation="fadeSlideUp" delay={0}>
           <View style={styles.header}>
             <View>
-              <Text style={[styles.headerDate, { color: colors.textSecondary, fontFamily: fontFamily.bold, fontSize: 10, textTransform: 'uppercase', marginBottom: 4, letterSpacing: 1.5 }]}>
+              <Text
+                style={[
+                  styles.headerDate,
+                  {
+                    color: colors.textSecondary,
+                    fontFamily: fontFamily.bold,
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    marginBottom: 4,
+                    letterSpacing: 1.5,
+                  },
+                ]}
+              >
                 ACCOUNT
               </Text>
-              <Text style={[styles.headerTitle, { color: colors.textPrimary, fontFamily: fontFamily.serif, fontWeight: '700' }]}>
+              <Text
+                style={[
+                  styles.headerTitle,
+                  {
+                    color: colors.textPrimary,
+                    fontFamily: fontFamily.serif,
+                  },
+                ]}
+              >
                 Overview.
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Pressable style={[styles.headerBtn, { backgroundColor: 'transparent', borderColor: colors.border, borderWidth: 1, borderRadius: 20 }]}>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable
+                style={[
+                  styles.headerBtn,
+                  {
+                    backgroundColor: "transparent",
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 20,
+                  },
+                ]}
+              >
                 <Bell size={18} color={colors.textPrimary} strokeWidth={1.5} />
               </Pressable>
               <Pressable
                 onPress={() => {
-                  const next = accountFilter === 'all' ? 'real' : accountFilter === 'real' ? 'funded' : accountFilter === 'funded' ? 'backtest' : 'all';
+                  const next =
+                    accountFilter === "all"
+                      ? "real"
+                      : accountFilter === "real"
+                        ? "funded"
+                        : accountFilter === "funded"
+                          ? "backtest"
+                          : "all";
                   setAccountFilter(next);
                 }}
-                style={[styles.headerBtn, { backgroundColor: 'transparent', borderColor: colors.border, borderWidth: 1, borderRadius: 20 }]}
+                style={[
+                  styles.headerBtn,
+                  {
+                    backgroundColor: "transparent",
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 20,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 13 }}>
+                <Text
+                  style={{
+                    color: colors.textPrimary,
+                    fontFamily: fontFamily.bold,
+                    fontSize: 13,
+                  }}
+                >
                   {accountFilter.charAt(0).toUpperCase()}
                 </Text>
               </Pressable>
@@ -113,14 +216,31 @@ const DashboardScreen = ({ navigation }) => {
           <>
             {/* Net P/L Hero Card */}
             <AnimatedView animation="fadeSlideUp" delay={100}>
-              <View style={[styles.heroCard, { backgroundColor: colors.cardElevated, borderWidth: 0, borderRadius: 16 }]}>
+              <GlassCard
+                variant="elevated"
+                style={[styles.heroCard, { borderWidth: 0 }]}
+                contentStyle={{ padding: 0 }}
+              >
                 {/* SVG Sparkline Background */}
                 <View style={StyleSheet.absoluteFill}>
-                  <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+                  <Svg
+                    width="100%"
+                    height="100%"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 100 100"
+                  >
                     <Defs>
                       <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor={colors.accent} stopOpacity="0.08" />
-                        <Stop offset="1" stopColor={colors.accent} stopOpacity="0" />
+                        <Stop
+                          offset="0"
+                          stopColor={colors.accent}
+                          stopOpacity="0.04"
+                        />
+                        <Stop
+                          offset="1"
+                          stopColor={colors.accent}
+                          stopOpacity="0"
+                        />
                       </LinearGradient>
                     </Defs>
                     <Path
@@ -132,7 +252,7 @@ const DashboardScreen = ({ navigation }) => {
                       fill="none"
                       stroke={colors.accent}
                       strokeWidth="1"
-                      strokeOpacity="0.2"
+                      strokeOpacity="0.08"
                     />
                   </Svg>
                 </View>
@@ -140,13 +260,25 @@ const DashboardScreen = ({ navigation }) => {
                 <View style={styles.heroContent}>
                   {/* Left Side 60% */}
                   <View style={styles.heroLeft}>
-                    <Text style={[styles.heroLabelText, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>
+                    <Text
+                      style={[
+                        styles.heroLabelText,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.medium,
+                        },
+                      ]}
+                    >
                       NET PNL
                     </Text>
                     <Text
                       style={[
                         styles.heroValueLarge,
-                        { color: stats.netProfit >= 0 ? colors.profit : colors.loss, fontFamily: fontFamily.bold }
+                        {
+                          color:
+                            stats.netProfit >= 0 ? colors.profit : colors.loss,
+                          fontFamily: fontFamily.serif,
+                        },
                       ]}
                       numberOfLines={1}
                       adjustsFontSizeToFit
@@ -158,125 +290,492 @@ const DashboardScreen = ({ navigation }) => {
                   {/* Right Side 40% */}
                   <View style={styles.heroRight}>
                     <View style={styles.heroStatBlock}>
-                      <Text style={[styles.heroLabelText, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>WIN RATE</Text>
-                      <Text style={[styles.heroStatValueSolid, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{formatPercent(stats.winRate, 0)}</Text>
+                      <Text
+                        style={[
+                          styles.heroLabelText,
+                          {
+                            color: colors.textSecondary,
+                            fontFamily: fontFamily.medium,
+                          },
+                        ]}
+                      >
+                        WIN RATE
+                      </Text>
+                      <Text
+                        style={[
+                          styles.heroStatValueSolid,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                      >
+                        {formatPercent(stats.winRate, 0)}
+                      </Text>
                     </View>
                     <View style={styles.heroStatBlock}>
-                      <Text style={[styles.heroLabelText, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>TRADES</Text>
-                      <Text style={[styles.heroStatValueSolid, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{stats.totalTrades}</Text>
+                      <Text
+                        style={[
+                          styles.heroLabelText,
+                          {
+                            color: colors.textSecondary,
+                            fontFamily: fontFamily.medium,
+                          },
+                        ]}
+                      >
+                        TRADES
+                      </Text>
+                      <Text
+                        style={[
+                          styles.heroStatValueSolid,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                      >
+                        {stats.totalTrades}
+                      </Text>
                     </View>
                   </View>
                 </View>
-              </View>
+              </GlassCard>
             </AnimatedView>
 
             {/* Win/Loss Summary */}
             <AnimatedView animation="fadeSlideUp" delay={200}>
-              <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 20, borderWidth: 0, marginBottom: 24 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                  <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                  <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+              <GlassCard
+                style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.sectionTitleMuted,
+                      {
+                        color: colors.textTertiary,
+                        fontFamily: fontFamily.bold,
+                        letterSpacing: 1.5,
+                        fontSize: 11,
+                      },
+                    ]}
+                  >
                     WIN RATE
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20 }}>
-                  <Text style={{ fontSize: 42, fontFamily: fontFamily.bold, color: colors.textPrimary, lineHeight: 46 }}>
-                    {stats.winRate.toFixed(0)}<Text style={{ color: colors.textTertiary, fontSize: 20 }}>%</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-end",
+                    justifyContent: "space-between",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 42,
+                      fontFamily: fontFamily.bold,
+                      color: colors.textPrimary,
+                      lineHeight: 46,
+                    }}
+                  >
+                    {stats.winRate.toFixed(0)}
+                    <Text style={{ color: colors.textTertiary, fontSize: 20 }}>
+                      %
+                    </Text>
                   </Text>
-                  <View style={{ flexDirection: 'row', gap: 16 }}>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 10, letterSpacing: 1, marginBottom: 4 }}>WON</Text>
-                      <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 18 }}>{stats.winCount}</Text>
+                  <View style={{ flexDirection: "row", gap: 16 }}>
+                    <View style={{ alignItems: "center" }}>
+                      <Text
+                        style={{
+                          color: colors.textTertiary,
+                          fontFamily: fontFamily.medium,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          marginBottom: 4,
+                        }}
+                      >
+                        WON
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textPrimary,
+                          fontFamily: fontFamily.bold,
+                          fontSize: 18,
+                        }}
+                      >
+                        {stats.winCount}
+                      </Text>
                     </View>
-                    <View style={{ width: 1, backgroundColor: colors.border }} />
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 10, letterSpacing: 1, marginBottom: 4 }}>LOST</Text>
-                      <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 18 }}>{stats.lossCount}</Text>
+                    <View
+                      style={{ width: 1, backgroundColor: colors.border }}
+                    />
+                    <View style={{ alignItems: "center" }}>
+                      <Text
+                        style={{
+                          color: colors.textTertiary,
+                          fontFamily: fontFamily.medium,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          marginBottom: 4,
+                        }}
+                      >
+                        LOST
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textPrimary,
+                          fontFamily: fontFamily.bold,
+                          fontSize: 18,
+                        }}
+                      >
+                        {stats.lossCount}
+                      </Text>
                     </View>
                   </View>
                 </View>
 
                 {/* Thin gradient progress */}
-                <View style={{ height: 4, flexDirection: 'row', borderRadius: 2, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                  <View style={{ flex: stats.winRate || 1, backgroundColor: colors.accent, opacity: 0.9, borderRadius: 2 }} />
+                <View
+                  style={{
+                    height: 4,
+                    flexDirection: "row",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    backgroundColor: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: stats.winRate || 1,
+                      backgroundColor: colors.accent,
+                      opacity: 0.9,
+                      borderRadius: 2,
+                    }}
+                  />
                   <View style={{ width: 3 }} />
-                  <View style={{ flex: (100 - stats.winRate) || 1, backgroundColor: colors.loss, opacity: 0.4, borderRadius: 2 }} />
+                  <View
+                    style={{
+                      flex: 100 - stats.winRate || 1,
+                      backgroundColor: colors.loss,
+                      opacity: 0.4,
+                      borderRadius: 2,
+                    }}
+                  />
                 </View>
-              </View>
+              </GlassCard>
             </AnimatedView>
 
             {/* PERFORMANCE METRICS REDESIGN */}
             <AnimatedView animation="fadeSlideUp" delay={300}>
               <View style={styles.metricsContainer}>
-                <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.medium, marginBottom: 12 }]}>
+                <Text
+                  style={[
+                    styles.sectionTitleMuted,
+                    {
+                      color: colors.textSecondary,
+                      fontFamily: fontFamily.medium,
+                      marginBottom: 12,
+                    },
+                  ]}
+                >
                   TRADE QUALITY
                 </Text>
 
                 {/* ROW 1: Hero Metrics */}
-                <View style={[styles.metricRow1, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 16 }]}>
-                  <View style={styles.metricRow1Item}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 }}>
-                      <Trophy size={16} color={colors.accent} strokeWidth={2} />
-                      <Text style={[styles.metricLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>WIN RATE</Text>
-                    </View>
-                    <Text style={[styles.metricValueLarge, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{formatPercent(stats.winRate, 0)}</Text>
-                  </View>
-                  <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
-                  <View style={styles.metricRow1Item}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 }}>
-                      <Activity size={16} color={colors.accent} strokeWidth={2} />
-                      <Text style={[styles.metricLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>PROFIT FACTOR</Text>
-                    </View>
-                    <Text style={[styles.metricValueLarge, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)}</Text>
-                  </View>
-                </View>
-
-                {/* ROW 2: Core Financials (2 Cols) */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                  <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                  <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
-                    CORE FINANCIALS
-                  </Text>
-                </View>
-                <View style={styles.metricGrid2Col}>
-                  {[
-                    { label: 'NET PROFIT', value: formatPL(stats.netProfit), valColor: stats.netProfit >= 0 ? colors.textPrimary : colors.loss },
-                    { label: 'AVERAGE RR', value: `${stats.avgRR.toFixed(2)}`, unit: 'R', valColor: colors.textPrimary },
-                    { label: 'TOTAL PROFIT', value: formatCurrency(stats.totalProfit), valColor: colors.textPrimary },
-                    { label: 'TOTAL LOSS', value: formatCurrency(stats.totalLoss), valColor: colors.loss },
-                  ].map((item, idx) => (
-                    <View key={idx} style={[styles.metricCardMed, { backgroundColor: colors.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.02)' }]}>
-                      <Text style={[styles.metricLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium, marginBottom: 12 }]}>{item.label}</Text>
-                      <Text style={[styles.metricValueMed, { color: item.valColor, fontFamily: fontFamily.bold, fontSize: 22 }]}>
-                        {item.value} <Text style={{ color: colors.textTertiary, fontSize: 12, fontFamily: fontFamily.medium }}>{item.unit || ''}</Text>
+                <GlassCard
+                  style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+                >
+                  <View style={styles.metricRow1}>
+                    <View style={styles.metricRow1Item}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginBottom: 8,
+                          gap: 6,
+                        }}
+                      >
+                        <Trophy
+                          size={16}
+                          color={colors.accent}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[
+                            styles.metricLabel,
+                            {
+                              color: colors.textSecondary,
+                              fontFamily: fontFamily.medium,
+                              fontSize: 12,
+                            },
+                          ]}
+                        >
+                          WIN RATE
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.metricValueLarge,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                      >
+                        {formatPercent(stats.winRate, 0)}
                       </Text>
                     </View>
+                    <View
+                      style={[
+                        styles.metricDivider,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                    <View style={styles.metricRow1Item}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginBottom: 8,
+                          gap: 6,
+                        }}
+                      >
+                        <Activity
+                          size={16}
+                          color={colors.accent}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[
+                            styles.metricLabel,
+                            {
+                              color: colors.textSecondary,
+                              fontFamily: fontFamily.medium,
+                              fontSize: 12,
+                            },
+                          ]}
+                        >
+                          PROFIT FACTOR
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.metricValueLarge,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                      >
+                        {stats.profitFactor === Infinity
+                          ? "∞"
+                          : stats.profitFactor.toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                </GlassCard>
+
+                {/* ROW 2: Core Financials Title */}
+                <Text
+                  style={[
+                    styles.sectionTitleMuted,
+                    {
+                      color: colors.textTertiary,
+                      fontFamily: fontFamily.medium,
+                      marginTop: 24,
+                      marginBottom: 16,
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                    },
+                  ]}
+                >
+                  CORE FINANCIALS
+                </Text>
+
+                {/* ROW 3: Grid of 4 */}
+                <View
+                  style={[
+                    styles.metricGrid2Col,
+                    { justifyContent: "space-between" },
+                  ]}
+                >
+                  {[
+                    {
+                      label: "NET PROFIT",
+                      value: formatPL(stats.netProfit),
+                      valColor:
+                        stats.netProfit >= 0 ? colors.textPrimary : colors.loss,
+                    },
+                    {
+                      label: "AVERAGE RR",
+                      value: `${stats.avgRR.toFixed(2)}`,
+                      unit: "R",
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "TOTAL PROFIT",
+                      value: formatCurrency(stats.totalProfit),
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "TOTAL LOSS",
+                      value: formatCurrency(stats.totalLoss),
+                      valColor: colors.loss,
+                    },
+                  ].map((item, idx) => (
+                    <GlassCard
+                      variant="elevated"
+                      key={idx}
+                      style={styles.metricCardMed}
+                      contentStyle={{ padding: 14 }}
+                    >
+                      <Text
+                        style={[
+                          styles.metricLabel,
+                          {
+                            color: colors.textSecondary,
+                            fontFamily: fontFamily.medium,
+                            marginBottom: 8,
+                            fontSize: 11,
+                          },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.metricValueMed,
+                          {
+                            color: item.valColor,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                      >
+                        {item.value}{" "}
+                        <Text
+                          style={{
+                            color: colors.textTertiary,
+                            fontSize: 12,
+                            fontFamily: fontFamily.medium,
+                          }}
+                        >
+                          {item.unit || ""}
+                        </Text>
+                      </Text>
+                    </GlassCard>
                   ))}
                 </View>
 
-                {/* ROW 3: Advanced Analytics (3 Cols) */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24, marginBottom: 16, gap: 10 }}>
-                  <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                  <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
-                    ADVANCED ANALYTICS
-                  </Text>
-                </View>
-                <View style={styles.metricGrid3Col}>
+                {/* ROW 4: Advanced Analytics Title */}
+                <Text
+                  style={[
+                    styles.sectionTitleMuted,
+                    {
+                      color: colors.textTertiary,
+                      fontFamily: fontFamily.medium,
+                      marginTop: 24,
+                      marginBottom: 16,
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                    },
+                  ]}
+                >
+                  ADVANCED ANALYTICS
+                </Text>
+
+                {/* ROW 5: Grid of 3 */}
+                <View
+                  style={[
+                    styles.metricGrid3Col,
+                    { justifyContent: "space-between" },
+                  ]}
+                >
                   {[
-                    { label: 'BEST TRADE', value: formatPL(stats.bestTrade), valColor: colors.textPrimary },
-                    { label: 'WORST TRADE', value: formatPL(stats.worstTrade), valColor: colors.loss },
-                    { label: 'EXPECTANCY', value: formatPL(stats.expectancy), valColor: colors.textPrimary },
-                    { label: 'AVG WIN', value: formatCurrency(stats.avgWin), valColor: colors.textPrimary },
-                    { label: 'AVG LOSS', value: formatCurrency(stats.avgLoss), valColor: colors.loss },
-                    { label: 'MAX DD', value: formatPercent(stats.maxDrawdown), valColor: colors.loss },
-                    { label: 'CURR STREAK', value: `${stats.currentStreak > 0 ? '+' : ''}${stats.currentStreak}`, valColor: colors.textPrimary },
-                    { label: 'MAX WIN STRK', value: `${stats.maxWinStreak}`, valColor: colors.textPrimary },
-                    { label: 'MAX LOSE STRK', value: `${stats.maxLoseStreak}`, valColor: colors.loss },
+                    {
+                      label: "BEST TRADE",
+                      value: formatPL(stats.bestTrade),
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "WORST TRADE",
+                      value: formatPL(stats.worstTrade),
+                      valColor: colors.loss,
+                    },
+                    {
+                      label: "EXPECTANCY",
+                      value: formatPL(stats.expectancy),
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "AVG WIN",
+                      value: formatCurrency(stats.avgWin),
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "AVG LOSS",
+                      value: formatCurrency(stats.avgLoss),
+                      valColor: colors.loss,
+                    },
+                    {
+                      label: "MAX DD",
+                      value: formatPercent(stats.maxDrawdown),
+                      valColor: colors.loss,
+                    },
+                    {
+                      label: "CURR STREAK",
+                      value: `${stats.currentStreak > 0 ? "+" : ""}${stats.currentStreak}`,
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "MAX WIN STRK",
+                      value: `${stats.maxWinStreak}`,
+                      valColor: colors.textPrimary,
+                    },
+                    {
+                      label: "MAX LOSE STRK",
+                      value: `${stats.maxLoseStreak}`,
+                      valColor: colors.loss,
+                    },
                   ].map((item, idx) => (
-                    <View key={idx} style={[styles.metricCardCompact, { backgroundColor: colors.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.02)' }]}>
-                      <Text style={[styles.metricLabelCompact, { color: colors.textSecondary, fontFamily: fontFamily.medium, marginBottom: 8 }]} numberOfLines={1}>{item.label}</Text>
-                      <Text style={[styles.metricValueCompact, { color: item.valColor, fontFamily: fontFamily.bold, fontSize: 15 }]} numberOfLines={1} adjustsFontSizeToFit>{item.value}</Text>
-                    </View>
+                    <GlassCard
+                      variant="elevated"
+                      key={idx}
+                      style={styles.metricCardCompact}
+                      contentStyle={{ padding: 10 }}
+                    >
+                      <Text
+                        style={[
+                          styles.metricLabelCompact,
+                          {
+                            color: colors.textSecondary,
+                            fontFamily: fontFamily.medium,
+                            marginBottom: 8,
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {item.label}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.metricValueCompact,
+                          {
+                            color: item.valColor,
+                            fontFamily: fontFamily.serif,
+                          },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {item.value}
+                      </Text>
+                    </GlassCard>
                   ))}
                 </View>
               </View>
@@ -285,39 +784,107 @@ const DashboardScreen = ({ navigation }) => {
             {/* Equity Curve */}
             {stats.equityCurve.length > 1 && (
               <AnimatedView animation="fadeSlideUp" delay={600}>
-                <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                    <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                    <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+                <GlassCard
+                  style={[styles.chartCard, { padding: 16, marginBottom: 24 }]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 16,
+                      gap: 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 3,
+                        height: 14,
+                        backgroundColor: colors.accent,
+                        borderRadius: 2,
+                      }}
+                    />
+                    <Text
+                      style={[
+                        styles.sectionTitleMuted,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.bold,
+                          letterSpacing: 1.5,
+                          fontSize: 11,
+                        },
+                      ]}
+                    >
                       EQUITY CURVE
                     </Text>
                   </View>
                   <View style={[styles.miniChart, { height: 120 }]}>
                     {(() => {
                       const pts = stats.equityCurve;
-                      const maxAbsY = Math.max(...pts.map(p => Math.abs(p.y))) || 1;
+                      const maxAbsY =
+                        Math.max(...pts.map((p) => Math.abs(p.y))) || 1;
 
                       const stepX = 100 / (pts.length > 1 ? pts.length - 1 : 1);
-                      const pointsStr = pts.map((p, i) => {
-                        const x = i * stepX;
-                        const normalizedY = (p.y / maxAbsY); // -1 to +1
-                        const y = 50 - (normalizedY * 40); // 10 to 90
-                        return `${x},${y}`;
-                      }).join(' L ');
+                      const pointsStr = pts
+                        .map((p, i) => {
+                          const x = i * stepX;
+                          const normalizedY = p.y / maxAbsY; // -1 to +1
+                          const y = 50 - normalizedY * 40; // 10 to 90
+                          return `${x},${y}`;
+                        })
+                        .join(" L ");
 
                       const firstP = pts[0];
-                      const firstNormalizedY = (firstP.y / maxAbsY);
-                      const firstY = 50 - (firstNormalizedY * 40);
+                      const firstNormalizedY = firstP.y / maxAbsY;
+                      const firstY = 50 - firstNormalizedY * 40;
 
                       const isOverallProfit = stats.netProfit >= 0;
-                      const curveColor = isOverallProfit ? colors.profit : colors.loss;
+                      const curveColor = isOverallProfit
+                        ? colors.profit
+                        : colors.loss;
 
                       return (
-                        <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <Svg
+                          width="100%"
+                          height="100%"
+                          preserveAspectRatio="none"
+                          viewBox="0 0 100 100"
+                        >
                           <Defs>
-                            <LinearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
-                              <Stop offset="0" stopColor={curveColor} stopOpacity="0.2" />
-                              <Stop offset="1" stopColor={curveColor} stopOpacity="0" />
+                            <LinearGradient
+                              id="eqGrad"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <Stop
+                                offset="0"
+                                stopColor={curveColor}
+                                stopOpacity="0.2"
+                              />
+                              <Stop
+                                offset="1"
+                                stopColor={curveColor}
+                                stopOpacity="0"
+                              />
+                            </LinearGradient>
+                            <LinearGradient
+                              id="lineGrad"
+                              x1="0"
+                              y1="0"
+                              x2="1"
+                              y2="0"
+                            >
+                              <Stop
+                                offset="0"
+                                stopColor={curveColor}
+                                stopOpacity="0.3"
+                              />
+                              <Stop
+                                offset="1"
+                                stopColor={curveColor}
+                                stopOpacity="1"
+                              />
                             </LinearGradient>
                           </Defs>
                           <Path
@@ -327,49 +894,134 @@ const DashboardScreen = ({ navigation }) => {
                           <Path
                             d={`M 0,${firstY} L ${pointsStr}`}
                             fill="none"
-                            stroke={curveColor}
+                            stroke="url(#lineGrad)"
+                            strokeWidth="8"
+                            strokeOpacity="0.25"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <Path
+                            d={`M 0,${firstY} L ${pointsStr}`}
+                            fill="none"
+                            stroke="url(#lineGrad)"
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           />
-                          <Path d="M0,50 L100,50" stroke={colors.border} strokeWidth="1" strokeDasharray="2,2" />
+                          <Path
+                            d="M0,50 L100,50"
+                            stroke={colors.border}
+                            strokeWidth="1"
+                            strokeDasharray="2,2"
+                          />
                         </Svg>
                       );
                     })()}
                   </View>
                   <View style={styles.chartLabels}>
-                    <Text style={[styles.chartLabel, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
+                    <Text
+                      style={[
+                        styles.chartLabel,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.regular,
+                        },
+                      ]}
+                    >
                       First Trade
                     </Text>
-                    <Text style={[styles.chartLabel, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
+                    <Text
+                      style={[
+                        styles.chartLabel,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.regular,
+                        },
+                      ]}
+                    >
                       Latest Trade
                     </Text>
                   </View>
-                </View>
+                </GlassCard>
               </AnimatedView>
             )}
 
             {/* Win Loss Pie Chart */}
             <AnimatedView animation="fadeSlideUp" delay={630}>
-              <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                  <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                  <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+              <GlassCard
+                style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.sectionTitleMuted,
+                      {
+                        color: colors.textSecondary,
+                        fontFamily: fontFamily.bold,
+                        letterSpacing: 1.5,
+                        fontSize: 11,
+                      },
+                    ]}
+                  >
                     WIN / LOSS DISTRIBUTION
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 }}>
-                  <View style={{ width: 120, height: 120, justifyContent: 'center', alignItems: 'center' }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 8,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 120,
+                      height: 120,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
                     <Svg width="120" height="120" viewBox="0 0 100 100">
                       <Defs>
-                        <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                          <Stop offset="0" stopColor={colors.accent} stopOpacity="0.4" />
-                          <Stop offset="1" stopColor={colors.accent} stopOpacity="1" />
+                        <LinearGradient
+                          id="ringGrad"
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="1"
+                        >
+                          <Stop
+                            offset="0"
+                            stopColor={colors.accent}
+                            stopOpacity="0.4"
+                          />
+                          <Stop
+                            offset="1"
+                            stopColor={colors.accent}
+                            stopOpacity="1"
+                          />
                         </LinearGradient>
                       </Defs>
-                      <SvgCircle cx="50" cy="50" r="46" stroke={colors.loss} strokeOpacity="0.3" strokeWidth="3" fill="none" />
                       <SvgCircle
-                        cx="50" cy="50" r="46"
+                        cx="50"
+                        cy="50"
+                        r="46"
+                        stroke={colors.loss}
+                        strokeOpacity="0.3"
+                        strokeWidth="3"
+                        fill="none"
+                      />
+                      <SvgCircle
+                        cx="50"
+                        cy="50"
+                        r="46"
                         stroke="url(#ringGrad)"
                         strokeWidth="4"
                         strokeDasharray={`${(stats.winRate / 100) * 289} 289`}
@@ -378,146 +1030,341 @@ const DashboardScreen = ({ navigation }) => {
                         transform="rotate(-90 50 50)"
                       />
                     </Svg>
-                    <View style={{ position: 'absolute', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 24, fontFamily: fontFamily.bold, color: colors.textPrimary }}>{stats.winRate.toFixed(0)}%</Text>
+                    <View
+                      style={{ position: "absolute", alignItems: "center" }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontFamily: fontFamily.serif,
+                          color: colors.textPrimary,
+                        }}
+                      >
+                        {stats.winRate.toFixed(0)}%
+                      </Text>
                     </View>
                   </View>
 
                   <View style={{ gap: 20 }}>
                     <View>
-                      <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 10, letterSpacing: 1, marginBottom: 4 }}>WINS</Text>
-                      <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 20 }}>{stats.winCount}</Text>
+                      <Text
+                        style={{
+                          color: colors.textTertiary,
+                          fontFamily: fontFamily.medium,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          marginBottom: 4,
+                        }}
+                      >
+                        WINS
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textPrimary,
+                          fontFamily: fontFamily.bold,
+                          fontSize: 20,
+                        }}
+                      >
+                        {stats.winCount}
+                      </Text>
                     </View>
                     <View>
-                      <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 10, letterSpacing: 1, marginBottom: 4 }}>LOSSES</Text>
-                      <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 20 }}>{stats.lossCount}</Text>
+                      <Text
+                        style={{
+                          color: colors.textTertiary,
+                          fontFamily: fontFamily.medium,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          marginBottom: 4,
+                        }}
+                      >
+                        LOSSES
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textPrimary,
+                          fontFamily: fontFamily.bold,
+                          fontSize: 20,
+                        }}
+                      >
+                        {stats.lossCount}
+                      </Text>
                     </View>
                   </View>
                 </View>
-              </View>
+              </GlassCard>
             </AnimatedView>
 
             {/* Performance Chart */}
             {stats.monthlyStats && stats.monthlyStats.length > 0 && (
               <AnimatedView animation="fadeSlideUp" delay={660}>
-                <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                    <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                    <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+                <GlassCard
+                  style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 20,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.sectionTitleMuted,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.bold,
+                          letterSpacing: 1.5,
+                          fontSize: 11,
+                        },
+                      ]}
+                    >
                       MONTHLY PERFORMANCE
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 100, paddingHorizontal: 8 }}>
-                    {stats.monthlyStats.slice(0, 6).reverse().map((m, idx) => {
-                      const maxNet = Math.max(...stats.monthlyStats.map(s => Math.abs(s.netPL))) || 1;
-                      const barHeightPercent = Math.max(10, (Math.abs(m.netPL) / maxNet) * 100);
-                      const isProfit = m.netPL >= 0;
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-end",
+                      height: 100,
+                      paddingHorizontal: 8,
+                    }}
+                  >
+                    {stats.monthlyStats
+                      .slice(0, 6)
+                      .reverse()
+                      .map((m, idx) => {
+                        const maxNet =
+                          Math.max(
+                            ...stats.monthlyStats.map((s) => Math.abs(s.netPL)),
+                          ) || 1;
+                        const barHeightPercent = Math.max(
+                          10,
+                          (Math.abs(m.netPL) / maxNet) * 100,
+                        );
+                        const isProfit = m.netPL >= 0;
 
-                      return (
-                        <View key={m.period} style={{ alignItems: 'center', width: 40 }}>
-                          <Text style={{
-                            color: colors.textSecondary,
-                            fontFamily: fontFamily.medium,
-                            fontSize: 10,
-                            marginBottom: 8,
-                          }}>
-                            {isProfit ? '+' : '-'}${Math.round(Math.abs(m.netPL))}
-                          </Text>
-                          <View style={{ height: 60, justifyContent: 'flex-end', alignItems: 'center', width: '100%' }}>
-                            <View style={{
-                              height: `${barHeightPercent}%`,
-                              width: 6,
-                              borderRadius: 3,
-                              backgroundColor: isProfit ? colors.textPrimary : colors.loss,
-                              opacity: isProfit ? 0.9 : 0.4,
-                            }} />
+                        return (
+                          <View
+                            key={m.period}
+                            style={{ alignItems: "center", width: 40 }}
+                          >
+                            <Text
+                              style={{
+                                color: colors.textSecondary,
+                                fontFamily: fontFamily.medium,
+                                fontSize: 10,
+                                marginBottom: 8,
+                              }}
+                            >
+                              {isProfit ? "+" : "-"}$
+                              {Math.round(Math.abs(m.netPL))}
+                            </Text>
+                            <View
+                              style={{
+                                height: 60,
+                                justifyContent: "flex-end",
+                                alignItems: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <View
+                                style={{
+                                  height: `${barHeightPercent}%`,
+                                  width: 6,
+                                  borderRadius: 3,
+                                  backgroundColor: isProfit
+                                    ? colors.textPrimary
+                                    : colors.loss,
+                                  opacity: isProfit ? 0.9 : 0.4,
+                                }}
+                              />
+                            </View>
+                            <Text
+                              style={{
+                                color: colors.textTertiary,
+                                fontFamily: fontFamily.medium,
+                                fontSize: 9,
+                                marginTop: 12,
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              {m.period.split("-")[1]}/
+                              {m.period.split("-")[0].substring(2)}
+                            </Text>
                           </View>
-                          <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 9, marginTop: 12, letterSpacing: 0.5 }}>
-                            {m.period.split('-')[1]}/{m.period.split('-')[0].substring(2)}
-                          </Text>
-                        </View>
-                      );
-                    })}
+                        );
+                      })}
                   </View>
-                </View>
+                </GlassCard>
               </AnimatedView>
             )}
 
             {/* Session Heatmap */}
             {stats.sessionStats && stats.sessionStats.length > 0 && (
               <AnimatedView animation="fadeSlideUp" delay={680}>
-                <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                    <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                    <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+                <GlassCard
+                  style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 20,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.sectionTitleMuted,
+                        {
+                          color: colors.textSecondary,
+                          fontFamily: fontFamily.bold,
+                          letterSpacing: 1.5,
+                          fontSize: 11,
+                        },
+                      ]}
+                    >
                       SESSION HEATMAP
                     </Text>
                   </View>
                   <View style={{ gap: 0 }}>
-                    {stats.sessionStats.filter(s => s.trades > 0).map((session, idx) => {
-                      const isProfit = session.netPL >= 0;
-                      const validSessions = stats.sessionStats.filter(s => s.trades > 0);
-                      const bestSession = validSessions.reduce((prev, curr) => (prev.netPL > curr.netPL) ? prev : curr, validSessions[0]);
-                      const isBest = session.name === bestSession.name;
+                    {stats.sessionStats
+                      .filter((s) => s.trades > 0)
+                      .map((session, idx) => {
+                        const isProfit = session.netPL >= 0;
+                        const validSessions = stats.sessionStats.filter(
+                          (s) => s.trades > 0,
+                        );
+                        const bestSession = validSessions.reduce(
+                          (prev, curr) =>
+                            prev.netPL > curr.netPL ? prev : curr,
+                          validSessions[0],
+                        );
+                        const isBest = session.name === bestSession.name;
 
-                      return (
-                        <View key={session.name} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                            <View>
-                              <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 14 }}>
-                                {session.name}
-                              </Text>
-                              <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 11, marginTop: 2 }}>
-                                {session.winRate.toFixed(0)}% win rate
-                              </Text>
+                        return (
+                          <View
+                            key={session.name}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              paddingVertical: 14,
+                              borderBottomWidth: 1,
+                              borderBottomColor: colors.border,
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 12,
+                              }}
+                            >
+                              <View>
+                                <Text
+                                  style={{
+                                    color: colors.textPrimary,
+                                    fontFamily: fontFamily.bold,
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  {session.name}
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: colors.textTertiary,
+                                    fontFamily: fontFamily.medium,
+                                    fontSize: 11,
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  {session.winRate.toFixed(0)}% win rate
+                                </Text>
+                              </View>
                             </View>
+                            <Text
+                              style={{
+                                color: isProfit ? colors.profit : colors.loss,
+                                fontFamily: fontFamily.bold,
+                                fontSize: 16,
+                              }}
+                            >
+                              {formatPL(session.netPL)}
+                            </Text>
                           </View>
-                          <Text style={{ color: isProfit ? colors.textPrimary : colors.loss, fontFamily: fontFamily.bold, fontSize: 16 }}>
-                            {formatPL(session.netPL)}
-                          </Text>
-                        </View>
-                      )
-                    })}
+                        );
+                      })}
                   </View>
-                </View>
+                </GlassCard>
               </AnimatedView>
             )}
 
             {/* Period Statistics */}
             <AnimatedView animation="fadeSlideUp" delay={700}>
-              <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
+              <GlassCard
+                style={[styles.chartCard, { padding: 16, marginBottom: 24 }]}
+              >
                 <View style={styles.periodHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      {
+                        color: colors.textPrimary,
+                        fontFamily: fontFamily.semiBold,
+                      },
+                    ]}
+                  >
                     Period Statistics
                   </Text>
                 </View>
                 <View style={styles.periodTabs}>
-                  {['monthly', 'weekly', 'daily'].map((period) => (
+                  {["monthly", "weekly", "daily"].map((period) => (
                     <Pressable
                       key={period}
                       onPress={() => setActiveStatPeriod(period)}
                       style={[
                         styles.periodTab,
                         {
-                          backgroundColor: activeStatPeriod === period ? colors.accentLight : 'transparent',
+                          backgroundColor:
+                            activeStatPeriod === period
+                              ? colors.profitLight
+                              : "transparent",
                           borderRadius: 8,
                         },
                       ]}
                     >
-                      <Text style={[
-                        styles.periodTabText,
-                        {
-                          color: activeStatPeriod === period ? colors.accent : colors.textSecondary,
-                          fontFamily: activeStatPeriod === period ? fontFamily.semiBold : fontFamily.regular,
-                        },
-                      ]}>
+                      <Text
+                        style={[
+                          styles.periodTabText,
+                          {
+                            color:
+                              activeStatPeriod === period
+                                ? colors.accent
+                                : colors.textSecondary,
+                            fontFamily:
+                              activeStatPeriod === period
+                                ? fontFamily.semiBold
+                                : fontFamily.regular,
+                          },
+                        ]}
+                      >
                         {period.charAt(0).toUpperCase() + period.slice(1)}
                       </Text>
                     </Pressable>
                   ))}
                 </View>
                 {periodStats.length === 0 ? (
-                  <Text style={[styles.noData, { color: colors.textTertiary, fontFamily: fontFamily.regular }]}>
+                  <Text
+                    style={[
+                      styles.noData,
+                      {
+                        color: colors.textTertiary,
+                        fontFamily: fontFamily.regular,
+                      },
+                    ]}
+                  >
                     No data for this period
                   </Text>
                 ) : (
@@ -527,104 +1374,213 @@ const DashboardScreen = ({ navigation }) => {
                       style={[
                         styles.periodRow,
                         { borderBottomColor: colors.divider },
-                        index === Math.min(periodStats.length, 10) - 1 && { borderBottomWidth: 0 },
+                        index === Math.min(periodStats.length, 10) - 1 && {
+                          borderBottomWidth: 0,
+                        },
                       ]}
                     >
-                      <Text style={[styles.periodDate, { color: colors.textPrimary, fontFamily: fontFamily.medium }]}>
+                      <Text
+                        style={[
+                          styles.periodDate,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: fontFamily.medium,
+                          },
+                        ]}
+                      >
                         {period.period}
                       </Text>
                       <View style={styles.periodStats}>
-                        <Text style={[styles.periodStat, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
+                        <Text
+                          style={[
+                            styles.periodStat,
+                            {
+                              color: colors.textSecondary,
+                              fontFamily: fontFamily.regular,
+                            },
+                          ]}
+                        >
                           {period.trades} trades
                         </Text>
                         <Badge
                           label={formatPercent(period.winRate, 0)}
-                          variant={period.winRate >= 50 ? 'profit' : 'loss'}
+                          variant={period.winRate >= 50 ? "profit" : "loss"}
                           size="xs"
                         />
-                        <Text style={[
-                          styles.periodPL,
-                          {
-                            color: period.netPL >= 0 ? colors.profit : colors.loss,
-                            fontFamily: fontFamily.semiBold,
-                          },
-                        ]}>
+                        <Text
+                          style={[
+                            styles.periodPL,
+                            {
+                              color:
+                                period.netPL >= 0 ? colors.profit : colors.loss,
+                              fontFamily: fontFamily.semiBold,
+                            },
+                          ]}
+                        >
                           {formatPL(period.netPL)}
                         </Text>
                       </View>
                     </View>
                   ))
                 )}
-              </View>
+              </GlassCard>
             </AnimatedView>
 
             {/* Recent Trades */}
             {trades && trades.length > 0 && (
               <AnimatedView animation="fadeSlideUp" delay={800}>
-                <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                      <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+                <GlassCard
+                  style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.sectionTitleMuted,
+                          {
+                            color: colors.textSecondary,
+                            fontFamily: fontFamily.bold,
+                            letterSpacing: 1.5,
+                            fontSize: 11,
+                          },
+                        ]}
+                      >
                         RECENT TRADES
                       </Text>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate('Journal')} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Text style={{ color: colors.accent, fontFamily: fontFamily.medium, fontSize: 12 }}>View All</Text>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("Journal")}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: colors.profit,
+                          fontFamily: fontFamily.medium,
+                          fontSize: 12,
+                        }}
+                      >
+                        View All
+                      </Text>
                       <ChevronRight size={14} color={colors.accent} />
                     </TouchableOpacity>
                   </View>
                   {trades.slice(0, 5).map((trade, index) => {
                     const isProfit = (trade.profitLoss || 0) >= 0;
-                    const isBuy = trade.direction === 'BUY';
+                    const isBuy = trade.direction === "BUY";
                     return (
                       <View
                         key={trade.id || index}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingVertical: 14,
+                          borderBottomWidth: 1,
+                          borderBottomColor: colors.border,
+                        }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 12,
+                          }}
+                        >
                           <View>
-                            <Text style={{ color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: 14, letterSpacing: 0.3 }}>
-                              {trade.instrument || 'Unknown'}
+                            <Text
+                              style={{
+                                color: colors.textPrimary,
+                                fontFamily: fontFamily.bold,
+                                fontSize: 14,
+                                letterSpacing: 0.3,
+                              }}
+                            >
+                              {trade.instrument || "Unknown"}
                             </Text>
-                            <Text style={{ color: colors.textTertiary, fontFamily: fontFamily.medium, fontSize: 11, marginTop: 2 }}>
-                              {trade.direction || 'N/A'}
+                            <Text
+                              style={{
+                                color: colors.textTertiary,
+                                fontFamily: fontFamily.medium,
+                                fontSize: 11,
+                                marginTop: 2,
+                              }}
+                            >
+                              {trade.direction || "N/A"}
                             </Text>
                           </View>
                         </View>
-                        <Text style={{ color: isProfit ? colors.textPrimary : colors.loss, fontFamily: fontFamily.bold, fontSize: 16 }}>
+                        <Text
+                          style={{
+                            color: isProfit ? colors.profit : colors.loss,
+                            fontFamily: fontFamily.bold,
+                            fontSize: 16,
+                          }}
+                        >
                           {formatPL(trade.profitLoss || 0)}
                         </Text>
                       </View>
                     );
                   })}
-                </View>
+                </GlassCard>
               </AnimatedView>
             )}
 
             {/* Trading Calendar */}
             <AnimatedView animation="fadeSlideUp" delay={900}>
-              <View style={[styles.chartCard, { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 0, marginBottom: 24 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                  <View style={{ width: 3, height: 14, backgroundColor: colors.accent, borderRadius: 2 }} />
-                  <Text style={[styles.sectionTitleMuted, { color: colors.textSecondary, fontFamily: fontFamily.bold, letterSpacing: 1.5, fontSize: 11 }]}>
+              <GlassCard
+                style={[styles.chartCard, { padding: 24, marginBottom: 24 }]}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.sectionTitleMuted,
+                      {
+                        color: colors.textTertiary,
+                        fontFamily: fontFamily.bold,
+                        letterSpacing: 1.5,
+                        fontSize: 11,
+                      },
+                    ]}
+                  >
                     TRADING CALENDAR
                   </Text>
                 </View>
                 <CalendarHeatmap
                   trades={filteredTrades}
                   onDayPress={(dateStr) => {
-                    navigation.navigate('Journal', { searchDate: dateStr });
+                    navigation.navigate("Journal", { searchDate: dateStr });
                   }}
                 />
-              </View>
+              </GlassCard>
             </AnimatedView>
           </>
         )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 };
 
@@ -636,9 +1592,9 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 56,
     paddingBottom: 16,
@@ -654,46 +1610,44 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   heroCard: {
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   heroContent: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 24,
-    alignItems: 'center',
+    alignItems: "flex-start",
   },
   heroLeft: {
     flex: 0.6,
   },
   heroRight: {
     flex: 0.4,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     gap: 12,
   },
   heroLabelText: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
     marginBottom: 4,
   },
   heroValueLarge: {
-    fontSize: 38,
-    fontWeight: '900',
+    fontSize: 32,
   },
   heroStatBlock: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   heroStatValueSolid: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
   },
   winLossBar: {
     marginHorizontal: 16,
@@ -703,88 +1657,91 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   barContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: 4,
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   barWin: {},
   barBE: {},
   barLoss: {},
   barLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
   },
   barLabel: {
     fontSize: 12,
   },
   sectionTitleMuted: {
-    fontSize: 13,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 4,
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    marginBottom: 8,
+    color: "rgba(255, 255, 255, 0.6)",
   },
   metricsContainer: {
     marginHorizontal: 16,
     marginBottom: 24,
   },
   metricRow1: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 20,
     paddingHorizontal: 16,
   },
   metricRow1Item: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   metricDivider: {
     width: 1,
     height: 40,
   },
   metricLabel: {
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 1,
   },
   metricValueLarge: {
-    fontSize: 28,
+    fontSize: 24,
   },
   metricGrid2Col: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 16,
   },
   metricCardMed: {
-    width: (SCREEN_WIDTH - 32 - 12) / 2,
-    padding: 16,
+    width: "48%",
+    justifyContent: "space-between",
   },
   metricValueMed: {
-    fontSize: 18,
+    fontSize: 16,
   },
   metricGrid3Col: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 16,
   },
   metricCardCompact: {
-    width: (SCREEN_WIDTH - 32 - 16) / 3,
-    padding: 12,
+    width: "31%",
+    justifyContent: "space-between",
   },
   metricLabelCompact: {
     fontSize: 9,
     letterSpacing: 0.5,
   },
   metricValueCompact: {
-    fontSize: 14,
+    fontSize: 13,
   },
   chartCard: {
     marginHorizontal: 16,
     marginBottom: 16,
   },
   miniChart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     height: 80,
     marginTop: 12,
     gap: 1,
@@ -793,8 +1750,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   chartLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
   },
   chartLabel: {
@@ -808,7 +1765,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   periodTabs: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 12,
     gap: 4,
   },
@@ -820,9 +1777,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   periodRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
@@ -830,8 +1787,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   periodStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   periodStat: {
@@ -840,10 +1797,10 @@ const styles = StyleSheet.create({
   periodPL: {
     fontSize: 13,
     minWidth: 60,
-    textAlign: 'right',
+    textAlign: "right",
   },
   noData: {
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: 20,
     fontSize: 13,
   },
@@ -852,25 +1809,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   transactionCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 12,
     marginBottom: 10,
     borderRadius: 14,
     borderWidth: 1,
   },
   txLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   txIconBox: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   txIconText: {
     fontSize: 14,
@@ -880,34 +1837,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   txBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
   },
   txBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontWeight: "800",
+    textTransform: "uppercase",
   },
   txPL: {
     fontSize: 16,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
   },
   skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     padding: 16,
     gap: 8,
   },
   skeletonItem: {
-    width: '48%',
+    width: "48%",
     marginBottom: 8,
   },
   pieContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
     paddingVertical: 8,
   },
   donutOuter: {
@@ -915,15 +1872,15 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 55,
     borderWidth: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   donutInner: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   donutPercent: {
     fontSize: 20,
@@ -931,14 +1888,14 @@ const styles = StyleSheet.create({
   donutSub: {
     fontSize: 9,
     marginTop: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   pieLegend: {
     gap: 8,
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   legendColor: {
@@ -950,15 +1907,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   performanceChartContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-end",
     height: 120,
     paddingTop: 12,
     paddingBottom: 4,
   },
   perfCol: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   perfValueText: {
@@ -967,31 +1924,31 @@ const styles = StyleSheet.create({
   },
   perfBarWrapper: {
     height: 80,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     width: 16,
-    backgroundColor: 'rgba(128,128,128,0.05)',
+    backgroundColor: "rgba(128,128,128,0.05)",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   perfBar: {
-    width: '100%',
+    width: "100%",
   },
   perfLabelText: {
     fontSize: 10,
     marginTop: 6,
   },
   sessionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   sessionBox: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: "45%",
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   sessionName: {
     fontSize: 14,

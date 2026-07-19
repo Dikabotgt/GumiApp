@@ -13,6 +13,14 @@ import { useFonts,
   Inter_700Bold,
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_700Bold,
+} from '@expo-google-fonts/jetbrains-mono';
+import {
+  PlayfairDisplay_600SemiBold,
+  PlayfairDisplay_700Bold,
+} from '@expo-google-fonts/playfair-display';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { TradeProvider } from './src/context/TradeContext';
 import { SettingsProvider } from './src/context/SettingsContext';
@@ -23,8 +31,8 @@ const AppContent = () => {
 
   if (!themeLoaded) {
     return (
-      <View style={[styles.loading, { backgroundColor: '#0A0E1A' }]}>
-        <ActivityIndicator size="large" color="#00D4AA" />
+      <View style={[styles.loading, { backgroundColor: '#090A0E' }]}>
+        <ActivityIndicator size="large" color="#C99853" />
       </View>
     );
   }
@@ -49,12 +57,16 @@ export default function App() {
     Inter_600SemiBold,
     Inter_700Bold,
     Inter_800ExtraBold,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_700Bold,
+    PlayfairDisplay_600SemiBold,
+    PlayfairDisplay_700Bold,
   });
 
   if (!fontsLoaded) {
     return (
-      <View style={[styles.loading, { backgroundColor: '#0A0E1A' }]}>
-        <ActivityIndicator size="large" color="#00D4AA" />
+      <View style={[styles.loading, { backgroundColor: '#090A0E' }]}>
+        <ActivityIndicator size="large" color="#C99853" />
       </View>
     );
   }

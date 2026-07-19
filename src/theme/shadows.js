@@ -42,21 +42,24 @@ export const glowShadow = (color, intensity = 0.4) => {
   };
 };
 
+export const cardShadow = () => ({
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.15,
+  shadowRadius: 12,
+  elevation: 5,
+});
+
 export const glowGold = (intensity = 0.4) => {
   if (Platform.OS === 'android') {
     return { elevation: 12 };
   }
   return {
-    shadowColor: '#E6C06A',
+    shadowColor: '#C99853',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: intensity,
     shadowRadius: 16,
   };
 };
 
-export const cardShadow = (isDark) => {
-  if (isDark) {
-    return createShadow(12, '#000000', 0.5);
-  }
-  return createShadow(8, '#000000', 0.12);
-};
+

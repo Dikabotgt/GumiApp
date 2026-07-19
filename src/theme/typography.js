@@ -7,7 +7,10 @@ export const fontFamily = {
   semiBold: 'Inter_600SemiBold',
   bold: 'Inter_700Bold',
   extraBold: 'Inter_800ExtraBold',
-  serif: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  serif: 'PlayfairDisplay_600SemiBold',
+  serifBold: 'PlayfairDisplay_700Bold',
+  mono: 'JetBrainsMono_400Regular',
+  monoBold: 'JetBrainsMono_700Bold',
 };
 
 export const fontSize = {
@@ -121,19 +124,19 @@ export const textStyles = {
   
   // Mono (for numbers/prices)
   monoLg: {
-    fontFamily: fontFamily.semiBold,
+    fontFamily: fontFamily.monoBold,
     fontSize: fontSize.xl,
     lineHeight: lineHeight.xl,
     fontVariant: ['tabular-nums'],
   },
   monoMd: {
-    fontFamily: fontFamily.medium,
+    fontFamily: fontFamily.mono,
     fontSize: fontSize.base,
     lineHeight: lineHeight.base,
     fontVariant: ['tabular-nums'],
   },
   monoSm: {
-    fontFamily: fontFamily.medium,
+    fontFamily: fontFamily.mono,
     fontSize: fontSize.sm,
     lineHeight: lineHeight.sm,
     fontVariant: ['tabular-nums'],

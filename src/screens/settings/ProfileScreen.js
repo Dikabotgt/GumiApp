@@ -20,7 +20,7 @@ const ProfileScreen = ({ navigation }) => {
   const { colors, fontFamily } = useTheme();
   const { settings, updateSettings } = useSettings();
   const { trades } = useTrades();
-  const stats = calculateStats(trades);
+  const stats = calculateStats(trades, settings?.accountBalance || 0);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

@@ -11,14 +11,13 @@ import { useTheme } from '../context/ThemeContext';
 import BottomTabNavigator from './BottomTabNavigator';
 
 const AppNavigator = () => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
-  const baseTheme = isDark ? DarkTheme : DefaultTheme;
   const navigationTheme = {
-    ...baseTheme,
-    dark: isDark,
+    ...DarkTheme,
+    dark: true,
     colors: {
-      ...baseTheme.colors,
+      ...DarkTheme.colors,
       primary: colors.accent,
       background: 'transparent',
       card: colors.surface,
