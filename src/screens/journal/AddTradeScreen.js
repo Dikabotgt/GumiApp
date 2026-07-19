@@ -65,7 +65,7 @@ const AddTradeScreen = ({ navigation, route }) => {
       const updated = { ...prev, [field]: value };
       
       // Auto-calculate P/L, RR and Outcome when relevant fields change
-      if (['entry', 'exit', 'stopLoss', 'takeProfit', 'direction', 'lot'].includes(field)) {
+      if (['entry', 'exit', 'stopLoss', 'takeProfit', 'direction', 'lot', 'profitLoss'].includes(field)) {
         const entry = parseFloat(updated.entry);
         const exit = parseFloat(updated.exit);
         const sl = parseFloat(updated.stopLoss);
@@ -73,17 +73,29 @@ const AddTradeScreen = ({ navigation, route }) => {
         const lot = parseFloat(updated.lot);
         const dir = updated.direction;
         
-        // Auto P/L
-        if (!isNaN(entry) && !isNaN(exit)) {
-          const multiplier = dir === 'BUY' ? 1 : -1;
-          const priceDiff = (exit - entry) * multiplier;
-          // Simple P/L estimation
-          updated.profitLoss = (priceDiff * (lot || 1) * 100000).toFixed(2);
-          
-          // Auto Outcome based on P/L if not explicitly set
-          if (parseFloat(updated.profitLoss) > 0) updated.outcome = 'win';
-          else if (parseFloat(updated.profitLoss) < 0) updated.outcome = 'loss';
+        // Auto P/L (only if we did NOT edit profitLoss directly in this action)
+        if (field !== 'profitLoss') {
+          if (!isNaN(entry) && !isNaN(exit)) {
+            const multiplier = dir === 'BUY' ? 1 : -1;
+            const priceDiff = (exit - entry) * multiplier;
+            // Smart P/L estimation based on asset price magnitude
+            let assetMultiplier = 100000; // Default for 5-digit Forex (e.g., 1.14000)
+            if (entry > 10 && entry <= 500) assetMultiplier = 1000; // JPY pairs (e.g., 150.00)
+            else if (entry > 500 && entry <= 5000) assetMultiplier = 100; // Gold/XAU (e.g., 2300.00)
+            else if (entry > 5000) assetMultiplier = 1; // Crypto/Indices (e.g., 39000, 65000)
+            
+            updated.profitLoss = (priceDiff * (lot || 1) * assetMultiplier).toFixed(2);
+          }
+        }
+        
+        // Always derive outcome from profitLoss
+        const plVal = parseFloat(updated.profitLoss);
+        if (!isNaN(plVal)) {
+          if (plVal > 0) updated.outcome = 'win';
+          else if (plVal < 0) updated.outcome = 'loss';
           else updated.outcome = 'be';
+        } else {
+          updated.outcome = '';
         }
         
         // Smart RR with Dynamic Precision
@@ -98,19 +110,22 @@ const AddTradeScreen = ({ navigation, route }) => {
           const risk = roundTo(Math.abs(entry - sl), precision);
           
           if (risk > 0) {
-            if (!isNaN(tp) && tp !== 0 && isNaN(exit)) {
+            if (!isNaN(tp) && tp !== 0 && (isNaN(exit) || exit === 0)) {
               // Planned RR
               const rewardTP = roundTo(Math.abs(tp - entry), precision);
               updated.rrRatio = (rewardTP / risk).toFixed(2);
-            }
-            if (!isNaN(exit) && exit !== 0) {
+            } else if (!isNaN(exit) && exit !== 0) {
               // Actual RR based on exit
               const reward = roundTo(Math.abs(exit - entry), precision);
               updated.rrRatio = (reward / risk).toFixed(2);
+            } else {
+              updated.rrRatio = '0.00';
             }
           } else {
             updated.rrRatio = '0.00';
           }
+        } else {
+          updated.rrRatio = '0.00';
         }
       }
       
@@ -278,7 +293,7 @@ const AddTradeScreen = ({ navigation, route }) => {
       takeProfit: parseFloat(form.takeProfit) || 0,
       lot: parseFloat(form.lot) || 0,
       riskPercent: parseFloat(form.riskPercent) || 0,
-      profitLoss: parseFloat(form.profitLoss) || 0,
+      profitLoss: Number(form.profitLoss) || 0,
       rrRatio: parseFloat(form.rrRatio) || 0,
     };
 
@@ -507,15 +522,14 @@ const AddTradeScreen = ({ navigation, route }) => {
               <Input label="RR Ratio" value={form.rrRatio} onChangeText={(v) => updateForm('rrRatio', v)} placeholder="0.00" keyboardType="decimal-pad" style={styles.halfInput} />
             </View>
             
-            {/* Outcome Selection */}
+            {/* Outcome Selection (Auto-derived from Profit/Loss) */}
             <Text style={[styles.fieldLabel, { color: colors.textSecondary, fontFamily: fontFamily.medium }]}>
               Outcome
             </Text>
             <View style={styles.directionRow}>
               {['win', 'loss', 'be'].map(out => (
-                <Pressable
+                <View
                   key={out}
-                  onPress={() => updateForm('outcome', out)}
                   style={[
                     styles.directionBtn,
                     {
@@ -541,7 +555,7 @@ const AddTradeScreen = ({ navigation, route }) => {
                   ]}>
                     {out}
                   </Text>
-                </Pressable>
+                </View>
               ))}
             </View>
           </Card>

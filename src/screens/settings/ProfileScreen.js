@@ -59,7 +59,7 @@ const ProfileScreen = ({ navigation }) => {
           <Card style={styles.settingsCard}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>Account Settings</Text>
             <Input
-              label="Account Balance"
+              label="Starting Balance (modal awal sebelum trade pertama)"
               value={settings.accountBalance.toString()}
               onChangeText={(v) => updateSettings({ accountBalance: parseFloat(v) || 0 })}
               keyboardType="decimal-pad"

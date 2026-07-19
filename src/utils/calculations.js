@@ -4,6 +4,18 @@
  */
 
 /**
+ * Helper to safely parse trade dates to prevent Invalid Date sorting bugs
+ */
+const parseDateSafely = (dateStr, timeStr) => {
+  if (!dateStr) return new Date(0);
+  const fullStr = dateStr + ' ' + (timeStr || '00:00');
+  let parsed = new Date(fullStr);
+  if (isNaN(parsed.getTime())) parsed = new Date(dateStr);
+  if (isNaN(parsed.getTime())) parsed = new Date(0);
+  return parsed;
+};
+
+/**
  * Calculate all dashboard statistics from trades array
  */
 export const calculateStats = (trades, initialBalance = 0) => {
@@ -17,12 +29,12 @@ export const calculateStats = (trades, initialBalance = 0) => {
     return getEmptyStats();
   }
 
-  const wins = completedTrades.filter(t => t.outcome === 'win' || (t.outcome !== 'loss' && t.outcome !== 'be' && t.profitLoss > 0));
-  const losses = completedTrades.filter(t => t.outcome === 'loss' || (t.outcome !== 'win' && t.outcome !== 'be' && t.profitLoss < 0));
-  const breakEven = completedTrades.filter(t => t.outcome === 'be' || (t.outcome !== 'win' && t.outcome !== 'loss' && t.profitLoss === 0));
+  const wins = completedTrades.filter(t => t.outcome === 'win' || (t.outcome !== 'loss' && t.outcome !== 'be' && Number(t.profitLoss || 0) > 0));
+  const losses = completedTrades.filter(t => t.outcome === 'loss' || (t.outcome !== 'win' && t.outcome !== 'be' && Number(t.profitLoss || 0) < 0));
+  const breakEven = completedTrades.filter(t => t.outcome === 'be' || (t.outcome !== 'win' && t.outcome !== 'loss' && Number(t.profitLoss || 0) === 0));
 
-  const totalProfit = wins.reduce((sum, t) => sum + t.profitLoss, 0);
-  const totalLoss = Math.abs(losses.reduce((sum, t) => sum + t.profitLoss, 0));
+  const totalProfit = wins.reduce((sum, t) => sum + Number(t.profitLoss || 0), 0);
+  const totalLoss = Math.abs(losses.reduce((sum, t) => sum + Number(t.profitLoss || 0), 0));
   const netProfit = totalProfit - totalLoss;
   
   const winRate = (wins.length / completedTrades.length) * 100;
@@ -37,8 +49,8 @@ export const calculateStats = (trades, initialBalance = 0) => {
     ? validRrTrades.reduce((sum, t) => sum + Number(t.rrRatio), 0) / validRrTrades.length
     : 0;
 
-  const bestTrade = Math.max(...completedTrades.map(t => t.profitLoss));
-  const worstTrade = Math.min(...completedTrades.map(t => t.profitLoss));
+  const bestTrade = Math.max(...completedTrades.map(t => Number(t.profitLoss || 0)));
+  const worstTrade = Math.min(...completedTrades.map(t => Number(t.profitLoss || 0)));
 
   const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : totalProfit > 0 ? Infinity : 0;
   
@@ -51,7 +63,7 @@ export const calculateStats = (trades, initialBalance = 0) => {
   const { currentStreak, maxWinStreak, maxLoseStreak } = calculateStreaks(completedTrades);
 
   // Maximum Drawdown
-  const maxDrawdown = calculateMaxDrawdown(completedTrades, initialBalance);
+  const maxDrawdown = calculateMaxDrawdown(completedTrades); // Removed initialBalance dependency
 
   // Equity Curve
   const equityCurve = calculateEquityCurve(completedTrades);
@@ -104,14 +116,15 @@ const calculateStreaks = (trades) => {
 
   // Sort by date
   const sorted = [...trades].sort((a, b) => {
-    const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
-    const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
+    const dateA = parseDateSafely(a.date, a.time);
+    const dateB = parseDateSafely(b.date, b.time);
     return dateA - dateB;
   });
 
   sorted.forEach(trade => {
-    const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && trade.profitLoss > 0);
-    const isLoss = trade.outcome === 'loss' || (trade.outcome !== 'win' && trade.outcome !== 'be' && trade.profitLoss < 0);
+    const pl = Number(trade.profitLoss || 0);
+    const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && pl > 0);
+    const isLoss = trade.outcome === 'loss' || (trade.outcome !== 'win' && trade.outcome !== 'be' && pl < 0);
 
     if (isWin) {
       tempWinStreak++;
@@ -130,9 +143,10 @@ const calculateStreaks = (trades) => {
   // Current streak based on last trades
   if (sorted.length > 0) {
     const lastTrade = sorted[sorted.length - 1];
-    if (lastTrade.profitLoss > 0) {
+    const lastPL = Number(lastTrade.profitLoss || 0);
+    if (lastPL > 0) {
       currentStreak = tempWinStreak;
-    } else if (lastTrade.profitLoss < 0) {
+    } else if (lastPL < 0) {
       currentStreak = -tempLoseStreak;
     }
   }
@@ -141,28 +155,28 @@ const calculateStreaks = (trades) => {
 };
 
 /**
- * Calculate maximum drawdown percentage (peak-to-trough relative to equity)
+ * Calculate maximum drawdown percentage (peak-to-trough relative to 0-based equity)
  */
-const calculateMaxDrawdown = (trades, initialBalance = 0) => {
-  if (initialBalance === 0) return 0;
-
-  let peak = initialBalance;
-  let cumulative = initialBalance;
+const calculateMaxDrawdown = (trades) => {
+  let peak = 0;
+  let cumulative = 0;
   let maxDD = 0;
 
   const sorted = [...trades].sort((a, b) => {
-    const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
-    const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
+    const dateA = parseDateSafely(a.date, a.time);
+    const dateB = parseDateSafely(b.date, b.time);
     return dateA - dateB;
   });
 
   sorted.forEach(trade => {
-    cumulative += trade.profitLoss;
+    cumulative += Number(trade.profitLoss || 0);
     if (cumulative > peak) {
       peak = cumulative;
     }
-    const currentDrawdownPercent = peak > 0 ? ((peak - cumulative) / peak) * 100 : 0;
-    maxDD = Math.max(maxDD, currentDrawdownPercent);
+    if (peak > 0) {
+      const currentDrawdownPercent = ((peak - cumulative) / peak) * 100;
+      maxDD = Math.max(maxDD, currentDrawdownPercent);
+    }
   });
 
   return Math.min(100, Math.max(0, maxDD));
@@ -174,13 +188,13 @@ const calculateMaxDrawdown = (trades, initialBalance = 0) => {
 const calculateEquityCurve = (trades) => {
   let cumulative = 0;
   const sorted = [...trades].sort((a, b) => {
-    const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
-    const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
+    const dateA = parseDateSafely(a.date, a.time);
+    const dateB = parseDateSafely(b.date, b.time);
     return dateA - dateB;
   });
 
   return sorted.map((trade, index) => {
-    cumulative += trade.profitLoss;
+    cumulative += Number(trade.profitLoss || 0);
     return {
       x: index,
       y: cumulative,
@@ -230,17 +244,18 @@ const calculatePeriodStats = (trades, period) => {
     }
 
     groups[key].trades++;
-    const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && trade.profitLoss > 0);
-    const isLoss = trade.outcome === 'loss' || (trade.outcome !== 'win' && trade.outcome !== 'be' && trade.profitLoss < 0);
+    const pl = Number(trade.profitLoss || 0);
+    const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && pl > 0);
+    const isLoss = trade.outcome === 'loss' || (trade.outcome !== 'win' && trade.outcome !== 'be' && pl < 0);
 
     if (isWin) {
       groups[key].wins++;
-      groups[key].profit += trade.profitLoss;
+      groups[key].profit += pl;
     } else if (isLoss) {
       groups[key].losses++;
-      groups[key].loss += Math.abs(trade.profitLoss);
+      groups[key].loss += Math.abs(pl);
     }
-    groups[key].netPL += trade.profitLoss;
+    groups[key].netPL += pl;
   });
 
   return Object.values(groups)
@@ -267,9 +282,10 @@ const calculateSessionStats = (trades) => {
   trades.forEach(trade => {
     if (trade.session && sessions[trade.session]) {
       const s = sessions[trade.session];
+      const pl = Number(trade.profitLoss || 0);
       s.trades++;
-      s.netPL += (trade.profitLoss || 0);
-      const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && trade.profitLoss > 0);
+      s.netPL += pl;
+      const isWin = trade.outcome === 'win' || (trade.outcome !== 'loss' && trade.outcome !== 'be' && pl > 0);
       if (isWin) s.wins++;
     }
   });

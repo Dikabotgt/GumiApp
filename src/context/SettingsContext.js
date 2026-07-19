@@ -13,7 +13,7 @@ const defaultSettings = {
   currency: 'USD',
   defaultLotSize: 0.01,
   defaultRiskPercent: 1,
-  accountBalance: 10000,
+  accountBalance: 0,
   leverage: 100,
   notificationsEnabled: true,
   showProfitInPips: false,

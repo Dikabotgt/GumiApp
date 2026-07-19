@@ -86,7 +86,7 @@ export const TradeProvider = ({ children }) => {
       if (storedTrades && storedTrades.length > 0) {
         dispatch({ type: ACTIONS.SET_TRADES, payload: storedTrades });
       } else {
-        dispatch({ type: ACTIONS.SET_TRADES, payload: sampleTrades });
+        dispatch({ type: ACTIONS.SET_TRADES, payload: [] });
       }
     };
     load();
