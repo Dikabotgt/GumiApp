@@ -22,14 +22,17 @@ import {
   PlayfairDisplay_700Bold,
 } from '@expo-google-fonts/playfair-display';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { TradeProvider } from './src/context/TradeContext';
 import { SettingsProvider } from './src/context/SettingsContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import LoginScreen from './src/screens/auth/LoginScreen';
 
 const AppContent = () => {
   const { colors, isLoaded: themeLoaded } = useTheme();
+  const { user, isLoading: authLoading } = useAuth();
 
-  if (!themeLoaded) {
+  if (!themeLoaded || authLoading) {
     return (
       <View style={[styles.loading, { backgroundColor: '#090A0E' }]}>
         <ActivityIndicator size="large" color="#C99853" />
@@ -44,7 +47,7 @@ const AppContent = () => {
         backgroundColor={colors.background}
         translucent={false}
       />
-      <AppNavigator />
+      {user ? <AppNavigator /> : <LoginScreen />}
     </>
   );
 };
@@ -73,11 +76,13 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <SettingsProvider>
-        <TradeProvider>
-          <AppContent />
-        </TradeProvider>
-      </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <TradeProvider>
+            <AppContent />
+          </TradeProvider>
+        </SettingsProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

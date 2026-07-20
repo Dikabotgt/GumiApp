@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useTrades } from '../../context/TradeContext';
+import { useAuth } from '../../context/AuthContext';
 import { APP_NAME, APP_VERSION } from '../../utils/constants';
 import AnimatedView from '../../components/common/AnimatedView';
 import GradientBackground from '../../components/common/GradientBackground';
@@ -22,6 +23,7 @@ const SettingsScreen = ({ navigation }) => {
   const { colors, fontFamily, borderRadius: br } = useTheme();
   const { settings, updateSettings } = useSettings();
   const { trades, bulkImport } = useTrades();
+  const { signOut } = useAuth();
 
   const handleBackup = async () => {
     try {
@@ -245,9 +247,9 @@ const SettingsScreen = ({ navigation }) => {
       title: '',
       items: [
         { icon: 'log-out-outline', label: 'Logout', danger: true, onPress: () => {
-          Alert.alert('Logout', 'This is a local-only app. Logout will clear your session.', [
+          Alert.alert('Logout', 'Are you sure you want to logout?', [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'OK' },
+            { text: 'OK', onPress: () => signOut() },
           ]);
         }},
       ],

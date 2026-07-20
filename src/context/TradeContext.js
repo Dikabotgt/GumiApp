@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { loadTrades, saveTrades, generateId } from '../utils/storage';
-import { sampleTrades } from '../data/sampleTrades';
+import { useAuth } from './AuthContext';
 
 const TradeContext = createContext();
 
@@ -78,11 +78,19 @@ function tradeReducer(state, action) {
 
 export const TradeProvider = ({ children }) => {
   const [state, dispatch] = useReducer(tradeReducer, initialState);
+  const { user } = useAuth(); // Getting the user_id dynamically from session
 
-  // Load trades from storage on mount
+  // Load trades from storage when user session is available
   useEffect(() => {
     const load = async () => {
-      const storedTrades = await loadTrades();
+      if (!user) {
+        dispatch({ type: ACTIONS.SET_TRADES, payload: [] });
+        return;
+      }
+      
+      dispatch({ type: ACTIONS.SET_LOADING, payload: true });
+      const storedTrades = await loadTrades(user.id);
+      
       if (storedTrades && storedTrades.length > 0) {
         dispatch({ type: ACTIONS.SET_TRADES, payload: storedTrades });
       } else {
@@ -90,14 +98,14 @@ export const TradeProvider = ({ children }) => {
       }
     };
     load();
-  }, []);
+  }, [user]);
 
-  // Persist trades whenever they change
+  // Persist trades to Supabase whenever local state changes
   useEffect(() => {
-    if (!state.isLoading) {
-      saveTrades(state.trades);
+    if (!state.isLoading && user) {
+      saveTrades(state.trades, user.id);
     }
-  }, [state.trades, state.isLoading]);
+  }, [state.trades, state.isLoading, user]);
 
   const addTrade = useCallback((trade) => {
     dispatch({ type: ACTIONS.ADD_TRADE, payload: trade });
